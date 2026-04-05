@@ -164,6 +164,24 @@ def updatevig():
     elif currentstate == vigstates["ChooseCMC"]:
         pass
 
+def main():
+    while True:
+        updatevig()
+
+def cleanup():
+    print("Cleaning up...")
+    LCD.clear()
+    button1.when_pressed = None
+    button2.when_pressed = None
+    button3.when_pressed = None
+
+    LCD.message("Goodbye!", 1)
+    time.sleep(2)
+    LCD.clear()
+
 #Main loop
-while True:
-    updatevig()
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        cleanup()
