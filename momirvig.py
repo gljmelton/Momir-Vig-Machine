@@ -25,8 +25,6 @@ vigstates = {
     "PrintCard": 3
 }
 
-cardlist = scryfall.getfilteredcards()
-
 targetcmc = 1
 mincmc = 1
 maxcmc = 1
@@ -76,14 +74,13 @@ def switchstate(newstate):
 #Init
 def initvig():
     print("Initializing...")
-    LCD.message("Initializing...", 1)
+    LCD.message("Initializing", 1)
+    LCD.message("data...", 2)
     
-    print("Initializing data...")
-    LCD.message("Initializing data...", 2)
-    setmaxcmc()
     global filteredcards
     filteredcards = scryfall.getfilteredcards()
-    
+    setmaxcmc()
+
     print('Initialization complete!')
     LCD.message("Complete!", 2)
 
