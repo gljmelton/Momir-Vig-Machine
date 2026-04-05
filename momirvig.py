@@ -13,9 +13,10 @@ BUTTON2PIN = config.getint('GPIO', 'button2pin')
 BUTTON3PIN = config.getint('GPIO', 'button3pin')
 
 #Button inputs
-button1 = gpiozero.Button(BUTTON1PIN)
-button2 = gpiozero.Button(BUTTON2PIN)
-button3 = gpiozero.Button(BUTTON3PIN)
+buttonbouncetime = 0.2
+button1 = gpiozero.Button(BUTTON1PIN, bounce_time=buttonbouncetime)
+button2 = gpiozero.Button(BUTTON2PIN, bounce_time=buttonbouncetime)
+button3 = gpiozero.Button(BUTTON3PIN, bounce_time=buttonbouncetime)
 
 vigstates = {
     "Init": 0,
