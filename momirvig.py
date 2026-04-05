@@ -82,9 +82,11 @@ def initvig():
     setmaxcmc()
     global filteredcards
     filteredcards = scryfall.getfilteredcards()
-    switchstate(vigstates["ChooseCMC"])
+    
     print('Initialization complete!')
     LCD.message("Complete!", 2)
+
+    switchstate(vigstates["ChooseCMC"])
 ##############
 
 #Choose CMC state
@@ -129,7 +131,6 @@ def exitchoosecmcstate():
     button1.when_pressed = None
     button2.when_pressed = None
     button3.when_pressed = None
-    switchstate(vigstates["SelectCard"])
 
 def choosecmc():
     pass
