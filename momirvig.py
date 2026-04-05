@@ -30,7 +30,7 @@ mincmc = 1
 maxcmc = 1
 LCD = LCD(i2c_addr = 0x27, backlight=True)
 
-filteredcards = []
+cardlist = []
 currentstate = vigstates["Init"]
 
 #Helper functions
@@ -76,11 +76,10 @@ def initvig():
     print("Initializing...")
     LCD.message("Initializing", 1)
     LCD.message("data...", 2)
-    
-    global filteredcards
-    filteredcards = scryfall.getfilteredcards()
     setmaxcmc()
-
+    global cardlist
+    cardlist = scryfall.getfilteredcards()
+    
     print('Initialization complete!')
     LCD.message("Complete!", 2)
 
