@@ -37,4 +37,13 @@ def getfilteredcards():
             matchfrontfacetype(card))                                            #Exclude cards based on type line of the front face
         ]
     
-    
+def getcardid(card):
+    return card["id"]
+
+def getarturlforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['image_uris']['art_crop']
+    elif 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['image_uris']['art_crop']
+    else:
+        return card['image_uris']['art_crop']

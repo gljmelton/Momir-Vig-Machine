@@ -20,17 +20,6 @@ verbose = config.getboolean('GENERAL', 'verboselogging')
 validate = config.getboolean('GENERAL', 'validatedata')
 download = True
 
-def getidforcard(card):
-    return card["id"]
-
-def getarturlforcard(card):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['image_uris']['art_crop']
-    elif 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['image_uris']['art_crop']
-    else:
-        return card['image_uris']['art_crop']
-
 def printverbose(string):
     if verbose:
         print(string)
@@ -41,8 +30,7 @@ def requestandsaveimage(url, filename):
     img.save(f'{imagepath}{filename}.{imagetype}')
 
 def doesimageexist(card):
-    return os.path.exists(f'{imagepath}{getidforcard(card)}.{imagetype}')
-
+    return os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}')
 
 filtereddata = scryfall.getfilteredcards()
 
@@ -52,19 +40,6 @@ if deletetype == "hard":
     for f in files:    
         print(f'Removing existing images...')
         os.remove(f)
-
-elif deletetype == "soft":
-    #Soft delete images that no longer have a corresponding card in the filtered data
-    print("Deleting images for cards not in filtered data...")
-    existingimages = glob.glob(f'{imagepath}*')
-    for i in range(len(existingimages)):
-        print(f'\r{i+1}/{len(existingimages)} images processed...', end='')
-        imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
-        if not any((('card_faces' in card) or ('card_faces' in card and card["id"] == imageid) or (card["id"] == imageid)) for card in filtereddata):
-            print(f'Deleting {existingimages[i]}...')
-            os.remove(existingimages[i])
-    
-    print("")
 
 # Download card images from filtered data, convert to monochrome, and save
 totalcards = len(filtereddata)
@@ -81,9 +56,28 @@ if download:
             printverbose(f'Image already exists for {filtereddata[i]["name"]}, skipping download.')
             continue
 
-        requestandsaveimage(getarturlforcard(card), getidforcard(card))
+        requestandsaveimage(scryfall.getarturlforcard(card), scryfall.getcardid(card))
             
-        print(f'Art crop downloaded for {filtereddata[i]["name"]}!')
+        print(f'Art crop downloaded for {filtereddata[i]["name"]}')
+
+#Soft delete after downloading
+if deletetype == "soft":
+    #Soft delete images that no longer have a corresponding card in the filtered data
+    print("Deleting images for cards not in filtered data...")
+
+    
+
+    existingimages = glob.glob(f'{imagepath}*')
+    for i in range(len(existingimages)):
+        print(f'\r{i+1}/{len(existingimages)} images processed...', end='')
+        imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
+        if not any((card["id"] == imageid) for card in filtereddata):
+            print("")
+            print(f'Deleting {existingimages[i]}...')
+            os.remove(existingimages[i])
+    
+    print("")
+
 
 if validate:
     print(f'Total cards: {len(filtereddata)} | Total images: {len(os.listdir(imagepath))}')
@@ -95,7 +89,7 @@ if validate:
 
         card = filtereddata[i]
 
-        if not os.path.exists(f'{imagepath}{getidforcard(card)}.{imagetype}'):
+        if not os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}'):
                 print(f'Missing image for {card["name"]}!')
         
         printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
@@ -111,16 +105,15 @@ if validate:
         
         printverbose(f'Validated image {i+1} of {len(existingimages)} for {existingimages[i]}!')
 
-    print('Validating duplicate ids')
-    print('Constructing list of duplicate cards...')
+    print('Validating duplicate ids...')
    
     idlist = {}
     for i in range(len(filtereddata)):
-        if not getidforcard(filtereddata[i]) in idlist:
-            idlist[str(getidforcard(filtereddata[i]))] = 1
+        if not scryfall.getcardid(filtereddata[i]) in idlist:
+            idlist[str(scryfall.getcardid(filtereddata[i]))] = 1
         else:
-            print(f'Duplicate id {getidforcard(filtereddata[i])} found for {filtereddata[i]["name"]}!')
-            idlist[str(getidforcard(filtereddata[i]))] += 1
+            print(f'Duplicate id {scryfall.getcardid(filtereddata[i])} found for {filtereddata[i]["name"]}!')
+            idlist[str(scryfall.getcardid(filtereddata[i]))] += 1
 
     for i in range(len(idlist)):
         if list(idlist.values())[i] > 1:
