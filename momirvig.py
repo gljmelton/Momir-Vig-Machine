@@ -97,9 +97,9 @@ def increasetargetcmc():
     else:
         targetcmc = maxcmc
     
-    print(f'Target CMC set to {targetcmc}!')
+    print(f'Target CMC set to {int(targetcmc)}!')
     LCD.clear()
-    LCD.message(f'Target CMC: {targetcmc}  ', 1)
+    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
 
 def decreasetargetcmc():
     global targetcmc
@@ -108,9 +108,9 @@ def decreasetargetcmc():
     else:
         targetcmc = mincmc
     
-    print(f'Target CMC set to {targetcmc}!')
+    print(f'Target CMC set to {int(targetcmc)}!')
     LCD.clear()
-    LCD.message(f'Target CMC: {targetcmc}  ', 1)
+    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
 
 def printtargetcmc():
     switchstate(vigstates["SelectCard"])
@@ -119,7 +119,7 @@ def enterchoosecmcstate():
     print("Entering choose CMC state...")
     
     LCD.clear()
-    LCD.message(f'Target CMC: {targetcmc}  ', 1)
+    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
     
     #Bind increase button
     button1.when_pressed = increasetargetcmc
