@@ -1,4 +1,5 @@
 lgpio
+gpiozero
 rplcd
 smbus2
 requests
