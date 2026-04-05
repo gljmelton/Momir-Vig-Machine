@@ -1,8 +1,21 @@
 import scryfall
 import random
 import time
-import RPi.GPIO as GPIO
+import gpiozero
 from LCD import LCD
+import configparser
+
+#CONFIG
+config = configparser.ConfigParser()
+config.read('config.ini')
+BUTTON1PIN = config.getint('GPIO', 'button1pin')
+BUTTON2PIN = config.getint('GPIO', 'button2pin')
+BUTTON3PIN = config.getint('GPIO', 'button3pin')
+
+#Button inputs
+button1 = gpiozero.Button(BUTTON1PIN)
+button2 = gpiozero.Button(BUTTON2PIN)
+button3 = gpiozero.Button(BUTTON3PIN)
 
 vigstates = {
     "Init": 0,
@@ -64,14 +77,6 @@ def initvig():
     print("Initializing...")
     LCD.message("Initializing...", 1)
     
-    print("Initializing GPIO...")
-    LCD.message("Initializing GPIO...", 2)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False) # Ignore warning for now
-    GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
-    GPIO.setup(11, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 11 to be an input pin and set initial value to be pulled low (off)
-    GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 12 to be an input pin and set initial value to be pulled low (off)
-    
     print("Initializing data...")
     LCD.message("Initializing data...", 2)
     setmaxcmc()
@@ -111,12 +116,10 @@ def printtargetcmc():
 def enterchoosecmcstate():
     print("Entering choose CMC state...")
     #Bind increase button
-    GPIO.add_event_detect(10,GPIO.RISING,callback=increasetargetcmc) # Setup event on pin 10 rising edge
-    #Bind decrease button
-    GPIO.add_event_detect(11,GPIO.RISING,callback=decreasetargetcmc) # Setup event on pin 10 rising edge
-    #Bind print button
-    GPIO.add_event_detect(12,GPIO.RISING,callback=decreasetargetcmc) # Setup event on pin 10 rising edge
-
+    button1.when_pressed = increasetargetcmc
+    button2.when_pressed = decreasetargetcmc
+    button3.when_pressed = printtargetcmc
+    
 def exitchoosecmcstate():
     print("Exiting choose CMC state...")
     GPIO.remove_event_detect(10) # Clean up event on pin 10

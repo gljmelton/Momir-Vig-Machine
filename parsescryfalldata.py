@@ -11,19 +11,14 @@ import scryfall
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-excludedsets = config.get('GENERAL', 'excludesets').split(', ')
-excludedlayouts = config.get('GENERAL', 'excludelayouts').split(', ')
-requiregames = config.get('GENERAL', 'requiregames').split(', ')
 requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
 imagepath = config.get('GENERAL', 'imagepath')
 imagetype = config.get('GENERAL', 'imagetype')
-
-delete = False
-softdelete = True
+deletetype = config.get('GENERAL', 'deletetype')
+verbose = config.getboolean('GENERAL', 'verboselogging')
+validate = config.getboolean('GENERAL', 'validatedata')
 download = True
-validate = True
-verbose = False
 
 def getidforcard(card):
     return card["id"]
@@ -48,16 +43,17 @@ def requestandsaveimage(url, filename):
 def doesimageexist(card):
     return os.path.exists(f'{imagepath}{getidforcard(card)}.{imagetype}')
 
-if delete:
+
+filtereddata = scryfall.getfilteredcards()
+
+if deletetype == "hard":
     #Clear out existing images in the image path
     files = glob.glob(f'{imagepath}*')
     for f in files:    
         print(f'Removing existing images...')
         os.remove(f)
 
-filtereddata = scryfall.getfilteredcards()
-
-if softdelete:
+elif deletetype == "soft":
     #Soft delete images that no longer have a corresponding card in the filtered data
     print("Deleting images for cards not in filtered data...")
     existingimages = glob.glob(f'{imagepath}*')
@@ -105,6 +101,15 @@ if validate:
         printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
     
     print('Images exist for all cards!')
+
+    print('Validating that all images are in card data...')
+    existingimages = glob.glob(f'{imagepath}*')
+    for i in range(len(existingimages)):
+        imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
+        if not any((('card_faces' in card) or ('card_faces' in card and card["id"] == imageid) or (card["id"] == imageid)) for card in filtereddata):
+            print(f'Image {existingimages[i]} does not have a corresponding card in data!')
+        
+        printverbose(f'Validated image {i+1} of {len(existingimages)} for {existingimages[i]}!')
 
     print('Validating duplicate ids')
     print('Constructing list of duplicate cards...')

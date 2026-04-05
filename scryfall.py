@@ -4,13 +4,12 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+bulkdataname = config.get('GENERAL', 'bulkdataname')
 excludedsets = config.get('GENERAL', 'excludesets').split(', ')
 excludedlayouts = config.get('GENERAL', 'excludelayouts').split(', ')
 requiregames = config.get('GENERAL', 'requiregames').split(', ')
 requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
-imagepath = config.get('GENERAL', 'imagepath')
-imagetype = config.get('GENERAL', 'imagetype')
 
 def matchexclusions(card):
     if card["set_type"] in excludedsets:
@@ -29,7 +28,7 @@ def matchfrontfacetype(card):
         return False
 
 def getfilteredcards():
-        with open('oracle-cards.json', 'r', encoding='utf-8') as file:
+        with open(bulkdataname, 'r', encoding='utf-8') as file:
             data = json.load(file)
         
         return [
