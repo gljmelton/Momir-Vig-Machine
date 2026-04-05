@@ -1,6 +1,7 @@
 lgpio
 gpiozero
 rplcd
+smbus
 smbus2
 requests
 Pillow

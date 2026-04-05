@@ -115,6 +115,10 @@ def printtargetcmc():
 
 def enterchoosecmcstate():
     print("Entering choose CMC state...")
+    
+    LCD.clear()
+    LCD.message(f'Target CMC: {targetcmc}  ', 1)
+    
     #Bind increase button
     button1.when_pressed = increasetargetcmc
     button2.when_pressed = decreasetargetcmc
@@ -122,8 +126,9 @@ def enterchoosecmcstate():
     
 def exitchoosecmcstate():
     print("Exiting choose CMC state...")
-    GPIO.remove_event_detect(10) # Clean up event on pin 10
-    GPIO.remove_event_detect(11) # Clean up event on pin 11
+    button1.when_pressed = None
+    button2.when_pressed = None
+    button3.when_pressed = None
     switchstate(vigstates["SelectCard"])
 
 def choosecmc():
