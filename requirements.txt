@@ -1,0 +1,4 @@
+rplcd
+smbus2
+requests
+Pillow
