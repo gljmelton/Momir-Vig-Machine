@@ -76,10 +76,10 @@ def initvig():
     print("Initializing...")
     LCD.message("Initializing", 1)
     LCD.message("data...", 2)
-    setmaxcmc()
     global cardlist
     cardlist = scryfall.getfilteredcards()
-    
+    setmaxcmc()
+
     print('Initialization complete!')
     LCD.message("Complete!", 2)
 
