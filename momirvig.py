@@ -125,9 +125,12 @@ def enterchoosecmcstate():
     
 def exitchoosecmcstate():
     print("Exiting choose CMC state...")
-    button1.when_pressed = None
-    button2.when_pressed = None
-    button3.when_pressed = None
+    if button1.when_pressed is not None:
+        button1.when_pressed = None
+    if button2.when_pressed is not None:
+        button2.when_pressed = None
+    if button3.when_pressed is not None:
+        button3.when_pressed = None
 
 def choosecmc():
     pass
@@ -167,9 +170,6 @@ def main():
 def cleanup():
     print("Cleaning up...")
     LCD.clear()
-    button1.when_pressed = None
-    button2.when_pressed = None
-    button3.when_pressed = None
 
     LCD.message("Goodbye!", 1)
     time.sleep(2)
