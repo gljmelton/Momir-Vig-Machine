@@ -58,7 +58,7 @@ if download:
 
         requestandsaveimage(scryfall.getarturlforcard(card), scryfall.getcardid(card))
             
-        print(f'Art crop downloaded for {filtereddata[i]["name"]}')
+        print(f'Art crop downloaded for {filtereddata[i]["name"]} ({progress:.2f}%)')
 
 #Soft delete after downloading
 if deletetype == "soft":
