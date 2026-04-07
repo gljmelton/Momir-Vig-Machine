@@ -1,5 +1,6 @@
 lgpio
 gpiozero
+pyserial
 rplcd
 smbus
 smbus2
