@@ -3,6 +3,7 @@ import random
 import time
 import gpiozero
 from LCD import LCD
+from thermalprinter.constants import Justify
 from thermalprinter import ThermalPrinter
 import configparser
 
@@ -160,13 +161,15 @@ def printcard():
     #Print card here using printer library
     printer.feed()
     printer.out(scryfall.getnameforcard(selectedcard))
-    printer.out(scryfall.getcmcforcard(selectedcard), justify=printer.RIGHT)
+    printer.out(scryfall.getcmcforcard(selectedcard), justify=Justify.RIGHT)
     printer.feed()
-    printer.image(image.open(scryfall.getimageforcard(selectedcard)))
+    printer.image(scryfall.getimageforcard(selectedcard))
     printer.feed()
     printer.out(scryfall.gettypelineforcard(selectedcard))
     printer.feed()
     printer.out(scryfall.getoracletextforcard(selectedcard))
+    printer.feed()
+    printer.out(scryfall.getstatlineforcard(selectedcard))
     printer.feed(2)
     switchstate(vigstates["ChooseCMC"])
 ##################

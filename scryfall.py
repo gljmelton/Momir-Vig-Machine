@@ -76,3 +76,11 @@ def getoracletextforcard(card):
         return card['card_faces'][0]['oracle_text']
     else:
         return card['oracle_text']
+    
+def getstatlineforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return f"{card['card_faces'][0]['power']}/{card['card_faces'][0]['toughness']}"
+    elif 'power' in card and 'toughness' in card:
+        return f"{card['power']}/{card['toughness']}"
+    else:
+        return ""
