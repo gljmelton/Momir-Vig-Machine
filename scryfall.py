@@ -10,6 +10,8 @@ excludedlayouts = config.get('GENERAL', 'excludelayouts').split(', ')
 requiregames = config.get('GENERAL', 'requiregames').split(', ')
 requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
+imagepath = config.get('GENERAL', 'imagepath')
+imagetype = config.get('GENERAL', 'imagetype')
 
 def matchexclusions(card):
     if card["set_type"] in excludedsets:
@@ -47,3 +49,30 @@ def getarturlforcard(card):
         return card['card_faces'][0]['image_uris']['art_crop']
     else:
         return card['image_uris']['art_crop']
+    
+def getnameforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['name']
+    else:
+        return card['name']
+    
+def getcmcforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['mana_cost']
+    else:
+        return card['mana_cost']
+
+def getimageforcard(card):
+    return f"{imagepath}{card['id']}.{imagetype}"
+
+def gettypelineforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['type_line']
+    else:
+        return card['type_line']
+    
+def getoracletextforcard(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][0]['oracle_text']
+    else:
+        return card['oracle_text']

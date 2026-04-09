@@ -3,6 +3,7 @@ import random
 import time
 import gpiozero
 from LCD import LCD
+from thermalprinter import ThermalPrinter
 import configparser
 
 #CONFIG
@@ -29,9 +30,11 @@ targetcmc = 1
 mincmc = 1
 maxcmc = 1
 LCD = LCD(i2c_addr = 0x27, backlight=True)
+printer = ThermalPrinter(port="/dev/serial0", baudrate=9600)
 
 cardlist = []
 currentstate = vigstates["Init"]
+selectedcard = None
 
 #Helper functions
 def setmaxcmc():
@@ -141,11 +144,12 @@ def selectcard():
     print("Entering select card state...")
     LCD.clear()
     LCD.message("Selecting card...", 1)
-    card = getrandomcardforcmc()
+    global selectedcard
+    selectedcard = getrandomcardforcmc()
     LCD.clear()
     LCD.message(f'Chosen card:', 1)
-    LCD.message(f'{card["name"]}  ', 2)
-    print(f'Chosen card: {card["name"]}')
+    LCD.message(f'{selectedcard["name"]}  ', 2)
+    print(f'Chosen card: {selectedcard["name"]}')
     time.sleep(5) #Delete when this will actually go to the printer
     switchstate(vigstates["PrintCard"])
 ######################
@@ -154,6 +158,16 @@ def selectcard():
 def printcard():
     print("Entering print card state...")
     #Print card here using printer library
+    printer.feed()
+    printer.out(scryfall.getnameforcard(selectedcard))
+    printer.out(scryfall.getcmcforcard(selectedcard), justify=printer.RIGHT)
+    printer.feed()
+    printer.image(image.open(scryfall.getimageforcard(selectedcard)))
+    printer.feed()
+    printer.out(scryfall.gettypelineforcard(selectedcard))
+    printer.feed()
+    printer.out(scryfall.getoracletextforcard(selectedcard))
+    printer.feed(2)
     switchstate(vigstates["ChooseCMC"])
 ##################
 
