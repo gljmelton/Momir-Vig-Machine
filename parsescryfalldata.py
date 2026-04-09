@@ -58,15 +58,12 @@ if download:
 
         requestandsaveimage(scryfall.getarturlforcard(card), scryfall.getcardid(card))
             
-        print(f'Art crop downloaded for {filtereddata[i]["name"]} ({progress:.2f}%)')
+        print(f'({i+1}/{totalcards}|{progress:.2f}%) Downloaded {filtereddata[i]["name"]}')
 
 #Soft delete after downloading
 if deletetype == "soft":
     #Soft delete images that no longer have a corresponding card in the filtered data
     print("Deleting images for cards not in filtered data...")
-
-    
-
     existingimages = glob.glob(f'{imagepath}*')
     for i in range(len(existingimages)):
         print(f'\r{i+1}/{len(existingimages)} images processed...', end='')

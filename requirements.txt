@@ -6,3 +6,4 @@ smbus
 smbus2
 requests
 Pillow
+thermalprinter
