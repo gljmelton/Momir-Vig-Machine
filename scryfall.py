@@ -58,6 +58,7 @@ def getarturlforcard(card):
     else:
         return card['image_uris']['art_crop']
 
+#Single Sided Cards
 def getnameforcard(card):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
         return card['card_faces'][0]['name']
@@ -69,14 +70,6 @@ def getcmcforcard(card):
         return card['card_faces'][0]['mana_cost']
     else:
         return card['mana_cost']
-
-def constructnameandcmclineforcard(card):
-    nameline = getnameforcard(card)
-    cmcline = getcmcforcard(card)
-    namecmcline = nameline
-
-    
-
 
 def getimageforcard(card):
     return Image.open(f"{imagepath}{card['id']}.{imagetype}")
@@ -104,3 +97,49 @@ def getstatlineforcard(card):
         return f"{card['power']}/{card['toughness']}"
     else:
         return ""
+####################
+
+#Double Sided Card Back
+def getnameforcardback(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][1]['name']
+    else:
+        return ""
+
+
+def getcmcforcardback(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return card['card_faces'][1]['mana_cost']
+    else:
+        return ""
+
+def gettypelineforcardback(card):
+    text = ""
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        text = card['card_faces'][1]['type_line']
+    else:
+        text = card['type_line']
+    return text.replace('—','-')
+    
+def getoracletextforcardback(card):
+    text = ""
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        text = card['card_faces'][1]['oracle_text']
+    else:
+        text = card['oracle_text']
+    return text.replace('—', '-')
+    
+def getstatlineforcardback(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return f"{card['card_faces'][1]['power']}/{card['card_faces'][0]['toughness']}"
+    elif 'power' in card and 'toughness' in card:
+        return f"{card['power']}/{card['toughness']}"
+    else:
+        return ""
+#######################
+
+def iscardtruedoubleface(card):
+    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+        return True
+    else:
+        return False
