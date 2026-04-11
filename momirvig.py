@@ -90,7 +90,7 @@ def initvig():
     LCD.message("Initializing", 1)
     LCD.message("data...", 2)
     printer.feed()
-    printer.out("Welcome to the Momir Vig Machine!")
+    printer.out("Welcome to Momir Vig Machine!")
     printer.feed(2)
     global cardlist
     cardlist = scryfall.getfilteredcards()
