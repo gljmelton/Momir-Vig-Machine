@@ -200,10 +200,10 @@ def printcard():
     try:
         printer.feed()
         printer.bold(True)
-        printer.out(f"{scryfall.getnameforcard(selectedcard)} - {scryfall.getcmcforcard(selectedcard)}")
+        printer.out(textwrap.fill(f"{scryfall.getnameforcard(selectedcard)} {scryfall.getcmcforcard(selectedcard)}"))
         customimage(scryfall.getimageforcard(selectedcard))
         printer.feed()
-        printer.out(scryfall.gettypelineforcard(selectedcard))
+        printer.out(textwrap.fill(scryfall.gettypelineforcard(selectedcard)))
         printer.bold(False)
         printer.feed()
         printer.out(textwrap.fill(scryfall.getoracletextforcard(selectedcard), 32))
@@ -213,8 +213,8 @@ def printcard():
         if (scryfall.iscardtruedoubleface(selectedcard)):
             printer.feed()
             printer.bold(True)
-            printer.out(f"{scryfall.getnameforcardback(selectedcard)} - {scryfall.getcmcforcardback(selectedcard)}")
-            printer.out(scryfall.gettypelineforcardback(selectedcard))
+            printer.out(textwrap.fill(f"{scryfall.getnameforcardback(selectedcard)} - {scryfall.getcmcforcardback(selectedcard)}"))
+            printer.out(textwrap.fill(scryfall.gettypelineforcardback(selectedcard)))
             printer.bold(False)
             printer.feed()
             printer.out(textwrap.fill(scryfall.getoracletextforcardback(selectedcard), 32))
