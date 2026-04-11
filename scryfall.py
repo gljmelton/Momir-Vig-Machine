@@ -1,5 +1,6 @@
 import json
 import configparser
+from PIL import Image
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -69,8 +70,16 @@ def getcmcforcard(card):
     else:
         return card['mana_cost']
 
+def constructnameandcmclineforcard(card):
+    nameline = getnameforcard(card)
+    cmcline = getcmcforcard(card)
+    namecmcline = nameline
+
+    
+
+
 def getimageforcard(card):
-    return f"{imagepath}{card['id']}.{imagetype}"
+    return Image.open(f"{imagepath}{card['id']}.{imagetype}")
 
 def gettypelineforcard(card):
     text = ""

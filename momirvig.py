@@ -4,6 +4,7 @@ import time
 import textwrap
 import gpiozero
 from LCD import LCD
+from PIL import Image
 from thermalprinter.constants import Justify
 from thermalprinter.exceptions import ThermalPrinterCommunicationError, ThermalPrinterValueError
 from thermalprinter import ThermalPrinter
@@ -154,6 +155,7 @@ def choosecmc():
 #Select card state
 def selectcard():
     print("Entering select card state...")
+    printer.flush()
     LCD.clear()
     LCD.message("Selecting card...", 1)
     global selectedcard
@@ -173,9 +175,8 @@ def printcard():
     print("Sending print request to printer...")
     try:
         printer.feed()
-        printer.out(scryfall.getnameforcard(selectedcard))
-        printer.out(scryfall.getcmcforcard(selectedcard), justify=Justify.RIGHT)
-        printer.feed()
+        printer.bold(True)
+        printer.out(f"{scryfall.getnameforcard(selectedcard)} - {scryfall.getcmcforcard(selectedcard)}")
         printer.image(scryfall.getimageforcard(selectedcard))
         printer.feed()
         printer.out(scryfall.gettypelineforcard(selectedcard))
