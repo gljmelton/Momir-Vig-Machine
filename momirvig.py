@@ -184,7 +184,7 @@ def printcard():
         printer.feed()
         printer.out(textwrap.fill(scryfall.getoracletextforcard(selectedcard), 32))
         printer.feed()
-        printer.out(scryfall.getstatlineforcard(selectedcard))
+        printer.out(scryfall.getstatlineforcard(selectedcard), Justify.RIGHT)
         printer.feed(2)
         if (scryfall.iscardtruedoubleface(selectedcard)):
             printer.feed()
@@ -195,7 +195,7 @@ def printcard():
             printer.feed()
             printer.out(textwrap.fill(scryfall.getoracletextforcardback(selectedcard), 32))
             printer.feed()
-            printer.out(scryfall.getstatlineforcardback(selectedcard))
+            printer.out(scryfall.getstatlineforcardback(selectedcard), Justify.RIGHT)
             printer.feed(2)
 
         print("Print sent!")
