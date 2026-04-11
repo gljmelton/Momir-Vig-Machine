@@ -4,6 +4,7 @@ import time
 import gpiozero
 from LCD import LCD
 from thermalprinter.constants import Justify
+from thermalprinter.exceptions import ThermalPrinterCommunicationError, ThermalPrinterValueError
 from thermalprinter import ThermalPrinter
 import configparser
 
@@ -38,6 +39,12 @@ currentstate = vigstates["Init"]
 selectedcard = None
 
 #Helper functions
+def resetprinter():
+    print("Resetting printer from error")
+    printer.offline() 
+    time.sleep(2)
+    printer.online()
+
 def setmaxcmc():
     global maxcmc
     for card in cardlist:
@@ -162,18 +169,27 @@ def selectcard():
 def printcard():
     print("Entering print card state...")
     #Print card here using printer library
-    printer.feed()
-    printer.out(scryfall.getnameforcard(selectedcard))
-    printer.out(scryfall.getcmcforcard(selectedcard), justify=Justify.RIGHT)
-    printer.feed()
-    printer.image(scryfall.getimageforcard(selectedcard))
-    printer.feed()
-    printer.out(scryfall.gettypelineforcard(selectedcard))
-    printer.feed()
-    printer.out(scryfall.getoracletextforcard(selectedcard))
-    printer.feed()
-    printer.out(scryfall.getstatlineforcard(selectedcard))
-    printer.feed(2)
+    print("Sending print request to printer...")
+    try:
+        printer.feed()
+        printer.out(scryfall.getnameforcard(selectedcard))
+        printer.out(scryfall.getcmcforcard(selectedcard), justify=Justify.RIGHT)
+        printer.feed()
+        printer.image(scryfall.getimageforcard(selectedcard))
+        printer.feed()
+        printer.out(scryfall.gettypelineforcard(selectedcard))
+        printer.feed()
+        printer.out(scryfall.getoracletextforcard(selectedcard))
+        printer.feed()
+        printer.out(scryfall.getstatlineforcard(selectedcard))
+        printer.feed(2)
+        print("Print sent!")
+    except ThermalPrinterCommunicationError:
+        print("ERROR - ThermalPrinterCommunicationError exception")
+        resetprinter()
+    except ThermalPrinterValueError:
+        print("ERROR - ThermalPrinterCommunicationError exception")
+        resetprinter()
     switchstate(vigstates["ChooseCMC"])
 ##################
 
@@ -182,6 +198,7 @@ def updatevig():
         initvig()
     elif currentstate == vigstates["ChooseCMC"]:
         pass
+
 
 def main():
     while True:
