@@ -105,7 +105,7 @@ def customimage(image):
         printer.write(struct.pack("B", bit), should_log=False)
 
     time.sleep(height / printer._line_spacing * printer._dot_print_time)
-    printer.__lines += height // printer._line_spacing + 1
+    printer.lines += height // printer._line_spacing + 1
 #####################
 
 #Init
