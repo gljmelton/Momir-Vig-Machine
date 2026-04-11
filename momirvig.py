@@ -1,6 +1,7 @@
 import scryfall
 import random
 import time
+import textwrap
 import gpiozero
 from LCD import LCD
 from thermalprinter.constants import Justify
@@ -179,7 +180,7 @@ def printcard():
         printer.feed()
         printer.out(scryfall.gettypelineforcard(selectedcard))
         printer.feed()
-        printer.out(scryfall.getoracletextforcard(selectedcard))
+        printer.out(textwrap.fill(scryfall.getoracletextforcard(selectedcard), 32))
         printer.feed()
         printer.out(scryfall.getstatlineforcard(selectedcard))
         printer.feed(2)
