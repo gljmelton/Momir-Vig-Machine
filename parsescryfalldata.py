@@ -26,7 +26,10 @@ def printverbose(string):
 
 def requestandsaveimage(url, filename):
     request = requests.get(url, stream=True)
-    img = Image.open(BytesIO(request.content)).convert('1')
+    img = Image.open(BytesIO(request.content))
+    img = img.resize((384, 280), 0)
+    img = img.point( lambda p: 255 if p > (0.3*255) else 0 )
+    img = img.convert("1")
     img.save(f'{imagepath}{filename}.{imagetype}')
 
 def doesimageexist(card):
@@ -36,10 +39,12 @@ filtereddata = scryfall.getfilteredcards()
 
 if deletetype == "hard":
     #Clear out existing images in the image path
+    print("Deleting all images...")
     files = glob.glob(f'{imagepath}*')
-    for f in files:    
-        print(f'Removing existing images...')
+    for f in files:
         os.remove(f)
+    
+    print("Delete complete!")
 
 # Download card images from filtered data, convert to monochrome, and save
 totalcards = len(filtereddata)

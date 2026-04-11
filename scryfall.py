@@ -21,7 +21,6 @@ def matchexclusions(card):
     
     return True
       
-
 def matchfrontfacetype(card):
         if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
             return any (cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in requiretypes)
@@ -29,15 +28,23 @@ def matchfrontfacetype(card):
             return any (cardtype in card['type_line'].lower().split(' ') for cardtype in requiretypes)
         return False
 
+def getcardbyid(id):
+    with open(bulkdataname, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    
+    return [
+        card for card in data if card['id'] == id                                          #Exclude cards based on type line of the front face
+    ]
+
 def getfilteredcards():
-        with open(bulkdataname, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        
-        return [
-            card for card in data if matchexclusions(card) and               #Exclude cards based on layout and set type
-            (any(game in card['games'] for game in requiregames) and             #Exclude cards based on game
-            matchfrontfacetype(card))                                            #Exclude cards based on type line of the front face
-        ]
+    with open(bulkdataname, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    
+    return [
+        card for card in data if matchexclusions(card) and               #Exclude cards based on layout and set type
+        (any(game in card['games'] for game in requiregames) and             #Exclude cards based on game
+        matchfrontfacetype(card))                                            #Exclude cards based on type line of the front face
+    ]
     
 def getcardid(card):
     return card["id"]
@@ -49,7 +56,7 @@ def getarturlforcard(card):
         return card['card_faces'][0]['image_uris']['art_crop']
     else:
         return card['image_uris']['art_crop']
-    
+
 def getnameforcard(card):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
         return card['card_faces'][0]['name']
@@ -66,16 +73,20 @@ def getimageforcard(card):
     return f"{imagepath}{card['id']}.{imagetype}"
 
 def gettypelineforcard(card):
+    text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['type_line']
+        text = card['card_faces'][0]['type_line']
     else:
-        return card['type_line']
+        text = card['type_line']
+    return text.replace('—','-')
     
 def getoracletextforcard(card):
+    text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['oracle_text']
+        text = card['card_faces'][0]['oracle_text']
     else:
-        return card['oracle_text']
+        text = card['oracle_text']
+    return text.replace('—', '-')
     
 def getstatlineforcard(card):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
