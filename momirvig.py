@@ -36,7 +36,7 @@ targetcmc = 1
 mincmc = 1
 maxcmc = 1
 LCD = LCD(i2c_addr = 0x27, backlight=True)
-printer = ThermalPrinter(port="/dev/serial0", baudrate=9600)
+printer = ThermalPrinter(port="/dev/ttyAMA0", baudrate=9600)
 
 cardlist = []
 currentstate = vigstates["Init"]
