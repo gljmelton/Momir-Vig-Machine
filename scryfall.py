@@ -1,4 +1,5 @@
 import json
+import textwrap
 import configparser
 from PIL import Image
 
@@ -93,6 +94,7 @@ def getoracletextforcard(card):
         text = card['oracle_text']
     text = text.replace('•', '*')
     text = text.replace('—', '-')
+    text = textwrap.fill(text)
     return text
     
 def getstatlineforcard(card):
