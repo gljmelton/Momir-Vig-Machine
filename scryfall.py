@@ -91,7 +91,6 @@ def getoracletextforcard(card):
         text = card['card_faces'][0]['oracle_text']
     else:
         text = card['oracle_text']
-    text = text.replace('\\n', '\\\\n')
     text = text.replace('•', '*')
     text = text.replace('—', '-')
     return text
