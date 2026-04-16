@@ -94,7 +94,8 @@ def getoracletextforcard(card):
         text = card['oracle_text']
     text = text.replace('•', '*')
     text = text.replace('—', '-')
-    text = textwrap.fill(text)
+    paragraphs = text.splitlines()
+    text = "\n".join([textwrap.fill(text, 32) for p in paragraphs])
     return text
     
 def getstatlineforcard(card):
