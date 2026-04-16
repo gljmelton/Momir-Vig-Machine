@@ -205,7 +205,9 @@ def printcard():
         printer.feed()
         printer.out(textwrap.fill(scryfall.gettypelineforcard(selectedcard), 32), bold=True)
         printer.feed()
-        printer.out(scryfall.getoracletextforcard(selectedcard))
+        oracletext = scryfall.getoracletextforcard(selectedcard)
+        for p in oracletext.splitlines():
+            printer.out(textwrap.fill(p, 32))
         printer.feed()
         printer.out(scryfall.getstatlineforcard(selectedcard), justify=Justify.RIGHT)
         printer.feed(2)
@@ -215,7 +217,9 @@ def printcard():
             printer.out(scryfall.getcmcforcardback(selectedcard), justify=Justify.RIGHT, bold=True)
             printer.out(textwrap.fill(scryfall.gettypelineforcardback(selectedcard)), 32, bold=True)
             printer.feed()
-            printer.out(scryfall.getoracletextforcardback(selectedcard))
+            oracletext = scryfall.getoracletextforcardback(selectedcard)
+            for p in oracletext.splitlines():
+                printer.out(textwrap.fill(p, 32))
             printer.feed()
             printer.out(scryfall.getstatlineforcardback(selectedcard), justify=Justify.RIGHT)
             printer.feed(2)
