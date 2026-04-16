@@ -200,7 +200,7 @@ def printcard():
     try:
         printer.feed()
         printer.out(scryfall.getnameforcard(selectedcard), False, bold=True)
-        printer.out(scryfall.getcmcforcard(selectedcard), justify=Justify.RIGHT, bold=True)
+        printer.out(scryfall.getcmcforcard(selectedcard), bold=True)
         customimage(scryfall.getimageforcard(selectedcard))
         printer.feed()
         printer.out(textwrap.fill(scryfall.gettypelineforcard(selectedcard)), bold=True)
