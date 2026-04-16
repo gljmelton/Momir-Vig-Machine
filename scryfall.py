@@ -8,6 +8,7 @@ config.read('config.ini')
 bulkdataname = config.get('GENERAL', 'bulkdataname')
 excludedsets = config.get('GENERAL', 'excludesets').split(', ')
 excludedlayouts = config.get('GENERAL', 'excludelayouts').split(', ')
+excludeplaytest = config.getboolean('GENERAL', 'excludeplaytest')
 requiregames = config.get('GENERAL', 'requiregames').split(', ')
 requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
@@ -18,6 +19,8 @@ def matchexclusions(card):
     if card["set_type"] in excludedsets:
         return False
     if card["layout"] in excludedlayouts:
+        return False
+    if excludeplaytest == True and 'promo_types' in card and 'playtest' in card['promo_types']:
         return False
     
     return True
@@ -88,7 +91,10 @@ def getoracletextforcard(card):
         text = card['card_faces'][0]['oracle_text']
     else:
         text = card['oracle_text']
-    return text.replace('—', '-')
+    text = text.replace('\\n', '\\\\n')
+    text = text.replace('•', '*')
+    text = text.replace('—', '-')
+    return text
     
 def getstatlineforcard(card):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:

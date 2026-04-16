@@ -6,6 +6,8 @@ import configparser
 import glob
 from io import BytesIO
 from PIL import Image
+from PIL import ImageStat
+import numpy
 import scryfall
 
 config = configparser.ConfigParser()
@@ -20,15 +22,25 @@ verbose = config.getboolean('GENERAL', 'verboselogging')
 validate = config.getboolean('GENERAL', 'validatedata')
 download = True
 
+darkthreshold = 0.1
+lightthreshold = 0.9
+
 def printverbose(string):
     if verbose:
         print(string)
+
+def getimagebrightness(img):
+    return ImageStat.Stat(img).mean[0]
+
+def getimagethreshold(img):
+    brightness = getimagebrightness(img)
+    return numpy.interp(brightness, [0,255], [darkthreshold, lightthreshold])
 
 def requestandsaveimage(url, filename):
     request = requests.get(url, stream=True)
     img = Image.open(BytesIO(request.content))
     img = img.resize((384, 280), 0)
-    img = img.point( lambda p: 255 if p > (0.3*255) else 0 )
+    img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
     img = img.convert("1")
     img.save(f'{imagepath}{filename}.{imagetype}')
 

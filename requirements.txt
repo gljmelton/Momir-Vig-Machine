@@ -7,3 +7,4 @@ smbus2
 requests
 Pillow
 thermalprinter
+numpy
