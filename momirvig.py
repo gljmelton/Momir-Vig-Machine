@@ -1,13 +1,12 @@
 import scryfall
+import printerhelper
 import random
 import time
-import textwrap
 import struct
 import gpiozero
 from LCD import LCD
 from PIL import Image
 from thermalprinter.constants import Command
-from thermalprinter.constants import Justify
 from thermalprinter.exceptions import ThermalPrinterCommunicationError, ThermalPrinterValueError
 from thermalprinter import ThermalPrinter
 import configparser
@@ -84,28 +83,6 @@ def switchstate(newstate):
 
     print(f'Switching from state {currentstate} to {newstate}...')
     currentstate = newstate
-
-def customimage(image):
-    bitmap = printer.image_chunks(image)
-    width, height = image.size
-    row_bytes = int((width + 7) / 8)  # Round up to next byte boundary
-
-    printer.send_command(
-        Command.GS,
-        118,
-        48,
-        0,
-        int(row_bytes % 256),
-        int(row_bytes / 256),
-        int(height % 256),
-        int(height / 256),
-    )
-    print(" >>> WRITE %s bytes of image data", f"{len(bitmap):,}")
-    for bit in bitmap:
-        printer.write(struct.pack("B", bit), should_log=False)
-
-    time.sleep(height / printer._line_spacing * printer._dot_print_time)
-    #printer.lines += height // printer._line_spacing + 1
 #####################
 
 #Init
@@ -198,38 +175,15 @@ def printcard():
     #Print card here using printer library
     print("Sending print request to printer...")
     try:
-        printer.feed()
-        printer.out(scryfall.getnameforcard(selectedcard), False, bold=True)
-        printer.out(scryfall.getcmcforcard(selectedcard), bold=True)
-        customimage(scryfall.getimageforcard(selectedcard))
-        printer.feed()
-        printer.out(textwrap.fill(scryfall.gettypelineforcard(selectedcard), 32), bold=True)
-        printer.feed()
-        oracletext = scryfall.getoracletextforcard(selectedcard)
-        for p in oracletext.splitlines():
-            printer.out(textwrap.fill(p, 32))
-        printer.feed()
-        printer.out(scryfall.getstatlineforcard(selectedcard), justify=Justify.RIGHT)
-        printer.feed(2)
-        if (scryfall.iscardtruedoubleface(selectedcard)):
-            printer.feed()
-            printer.out(scryfall.getnameforcardback(selectedcard), False, bold=True)
-            printer.out(scryfall.getcmcforcardback(selectedcard), justify=Justify.RIGHT, bold=True)
-            printer.out(textwrap.fill(scryfall.gettypelineforcardback(selectedcard)), 32, bold=True)
-            printer.feed()
-            oracletext = scryfall.getoracletextforcardback(selectedcard)
-            for p in oracletext.splitlines():
-                printer.out(textwrap.fill(p, 32))
-            printer.feed()
-            printer.out(scryfall.getstatlineforcardback(selectedcard), justify=Justify.RIGHT)
-            printer.feed(2)
-
+        printerhelper.printcard(selectedcard)
         print("Print sent!")
     except ThermalPrinterCommunicationError:
         print("ERROR - ThermalPrinterCommunicationError exception")
+        LCD.message("ERROR")
         resetprinter()
     except ThermalPrinterValueError:
         print("ERROR - ThermalPrinterCommunicationError exception")
+        LCD.message("ERROR")
         resetprinter()
     switchstate(vigstates["ChooseCMC"])
 ##################

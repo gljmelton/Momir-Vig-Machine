@@ -1,6 +1,7 @@
 import json
 import textwrap
 import configparser
+from enum import Enum
 from PIL import Image
 
 config = configparser.ConfigParser()
@@ -15,6 +16,10 @@ requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
 imagepath = config.get('GENERAL', 'imagepath')
 imagetype = config.get('GENERAL', 'imagetype')
+
+class Face(Enum):
+    FRONT = 0
+    BACK = 1
 
 def matchexclusions(card):
     if card["set_type"] in excludedsets:
@@ -54,97 +59,69 @@ def getfilteredcards():
 def getcardid(card):
     return card["id"]
 
-def getarturlforcard(card):
+def getarturlforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['image_uris']['art_crop']
-    elif 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['image_uris']['art_crop']
+        return card['card_faces'][face]['image_uris']['art_crop']
     else:
         return card['image_uris']['art_crop']
 
 #Single Sided Cards
-def getnameforcard(card):
+def getnameforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['name']
+        return card['card_faces'][face]['name']
     else:
         return card['name']
     
-def getcmcforcard(card):
+def getcmcforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][0]['mana_cost']
+        return card['card_faces'][face]['mana_cost']
     else:
         return card['mana_cost']
 
 def getimageforcard(card):
     return Image.open(f"{imagepath}{card['id']}.{imagetype}")
 
-def gettypelineforcard(card):
+def gettitlelineforcard(card, face = Face.FRONT):
+    name = getnameforcard(card, face)
+    cmc = getcmcforcard(card, face)
+    linelen = 32
+    namecap = ".. "
+    title = ""
+
+    if linelen - len(cmc) < len(name):
+        title = (name[:linelen - len(cmc) - len(namecap)] + namecap) + cmc
+    
+    elif len(cmc) + len(name) < linelen:
+        title = name + str(" " * (linelen - (len(cmc) + len(name)))) + cmc
+
+    return title
+
+def gettypelineforcard(card, face = Face.FRONT):
     text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][0]['type_line']
+        text = card['card_faces'][face]['type_line']
     else:
         text = card['type_line']
     return text.replace('—','-')
     
-def getoracletextforcard(card):
+def getoracletextforcard(card, face = Face.FRONT):
     text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][0]['oracle_text']
+        text = card['card_faces'][face]['oracle_text']
     else:
         text = card['oracle_text']
     text = text.replace('•', '*')
     text = text.replace('—', '-')
     return text
     
-def getstatlineforcard(card):
+def getstatlineforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return f"{card['card_faces'][0]['power']}/{card['card_faces'][0]['toughness']}"
+        return f"{card['card_faces'][face]['power']}/{card['card_faces'][face]['toughness']}"
     elif 'power' in card and 'toughness' in card:
         return f"{card['power']}/{card['toughness']}"
     else:
         return ""
 ####################
-
-#Double Sided Card Back
-def getnameforcardback(card):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][1]['name']
-    else:
-        return ""
-
-
-def getcmcforcardback(card):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][1]['mana_cost']
-    else:
-        return ""
-
-def gettypelineforcardback(card):
-    text = ""
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][1]['type_line']
-    else:
-        text = card['type_line']
-    text = text.replace('•', '*')
-    text = text.replace('—', '-')
-    return text
-    
-def getoracletextforcardback(card):
-    text = ""
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][1]['oracle_text']
-    else:
-        text = card['oracle_text']
-    return text.replace('—', '-')
-    
-def getstatlineforcardback(card):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return f"{card['card_faces'][1]['power']}/{card['card_faces'][0]['toughness']}"
-    elif 'power' in card and 'toughness' in card:
-        return f"{card['power']}/{card['toughness']}"
-    else:
-        return ""
-#######################
 
 def iscardtruedoubleface(card):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
