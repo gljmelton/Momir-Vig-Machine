@@ -175,7 +175,7 @@ def printcard():
     #Print card here using printer library
     print("Sending print request to printer...")
     try:
-        printerhelper.printcard(selectedcard)
+        printerhelper.printcard(printer, selectedcard)
         print("Print sent!")
     except ThermalPrinterCommunicationError:
         print("ERROR - ThermalPrinterCommunicationError exception")
