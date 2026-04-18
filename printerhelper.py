@@ -16,7 +16,7 @@ def printcardface(printer, card, face):
     printer.out(scryfall.gettitlelineforcard(card), bold=True)
     if face is Face.FRONT:
         printer.out("-"*32)
-        customimage(scryfall.getimageforcard(card))
+        customimage(printer, scryfall.getimageforcard(card))
     printer.feed()
     printer.out(textwrap.fill(scryfall.gettypelineforcard(card), 32), bold=True)
     printer.feed()
