@@ -44,7 +44,7 @@ def getcardbyid(id):
     
     return [
         card for card in data if card['id'] == id                                          #Exclude cards based on type line of the front face
-    ]
+    ][0]
 
 def getfilteredcards():
     with open(bulkdataname, 'r', encoding='utf-8') as file:

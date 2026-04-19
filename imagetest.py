@@ -16,9 +16,9 @@ darkId="3baa08ac-9a94-4e22-91bb-c6966cd0a0de"
 testId = "2c3549f6-25df-4ea7-84ad-922ccd4af6b2"
 darkthreshold = 0.1
 lightthreshold = 0.95
-testcard = scryfall.getcardbyid(testId)[0]
-lightcard = scryfall.getcardbyid(lightId)[0]
-darkcard = scryfall.getcardbyid(darkId)[0]
+testcard = scryfall.getcardbyid(testId)
+lightcard = scryfall.getcardbyid(lightId)
+darkcard = scryfall.getcardbyid(darkId)
 
 def getimagebrightness(img):
     return ImageStat.Stat(img).mean[0]
