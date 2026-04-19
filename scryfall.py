@@ -92,7 +92,7 @@ def formatforsingleline(first, second):
         result = (first[:linelen - len(second) - len(firstcap)] + firstcap) + second
     
     elif len(second) + len(first) < linelen:
-        title = first + str(" " * (linelen - (len(second) + len(first)))) + second
+        result = first + str(" " * (linelen - (len(second) + len(first)))) + second
 
     else:
         result = first + second
