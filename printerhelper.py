@@ -3,6 +3,7 @@ import textwrap
 import time
 import struct
 from thermalprinter.constants import Justify
+from thermalprinter.constants import Size
 from thermalprinter.constants import Command
 from scryfall import Face
 
@@ -17,18 +18,19 @@ def printcardface(printer, card, face):
     printer.feed()
     if face is Face.BACK:
         printer.out("-"*32)
-    printer.out(scryfall.gettitlelineforcard(card), bold=True)
+    printer.out(scryfall.gettitlelineforcard(card, face), bold=True)
     if face is Face.FRONT:
         customimage(printer, scryfall.getimageforcard(card))
     printer.feed()
-    printer.out(textwrap.fill(scryfall.gettypelineforcard(card), 32), bold=True)
+    printer.out(textwrap.fill(scryfall.gettypelineforcard(card, face), 32), bold=True)
+    printer.out(scryfall.getsetnameforcard(card), size=Size.SMALL)
     printer.feed()
-    oracletext = scryfall.getoracletextforcard(card)
+    oracletext = scryfall.getoracletextforcard(card, face)
     for p in oracletext.splitlines():
         printer.out(textwrap.fill(p, 32))
         printer.feed()
     printer.feed()
-    printer.out(scryfall.getstatlineforcard(card), justify=Justify.RIGHT)
+    printer.out(scryfall.getstatlineforcard(card, face), justify=Justify.RIGHT)
 
 def customimage(printer, image):
     bitmap = printer.image_chunks(image)

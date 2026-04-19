@@ -82,25 +82,22 @@ def getimageforcard(card):
     return Image.open(f"{imagepath}{card['id']}.{imagetype}")
 
 def gettitlelineforcard(card, face = Face.FRONT):
-    print("Getting name line..")
-    name = getnameforcard(card, face)
-    print(f"Name: {name}")
-    cmc = getcmcforcard(card, face)
-    print(f"CMC: {cmc}")
-    linelen = 32
-    namecap = ".. "
-    title = ""
+    return formatforsingleline(getnameforcard(card, face), getcmcforcard(card, face))
 
-    if linelen - len(cmc) < len(name):
-        title = (name[:linelen - len(cmc) - len(namecap)] + namecap) + cmc
+def formatforsingleline(first, second):
+    linelen = 32
+    firstcap = ".. "
+    result = ""
+    if linelen - len(second) < len(first):
+        result = (first[:linelen - len(second) - len(firstcap)] + firstcap) + second
     
-    elif len(cmc) + len(name) < linelen:
-        title = name + str(" " * (linelen - (len(cmc) + len(name)))) + cmc
+    elif len(second) + len(first) < linelen:
+        title = first + str(" " * (linelen - (len(second) + len(first)))) + second
 
     else:
-        title = name + cmc
-        
-    return title
+        result = first + second
+
+    return result
 
 def gettypelineforcard(card, face = Face.FRONT):
     text = ""
@@ -119,7 +116,10 @@ def getoracletextforcard(card, face = Face.FRONT):
     text = text.replace('•', '*')
     text = text.replace('—', '-')
     return text
-    
+
+def getsetnameforcard(card):
+    return card["set_name"]
+
 def getstatlineforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
         return f"{card['card_faces'][face]['power']}/{card['card_faces'][face]['toughness']}"
