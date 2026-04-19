@@ -82,8 +82,11 @@ def getimageforcard(card):
     return Image.open(f"{imagepath}{card['id']}.{imagetype}")
 
 def gettitlelineforcard(card, face = Face.FRONT):
+    print("Getting name line..")
     name = getnameforcard(card, face)
+    print(f"Name: {name}")
     cmc = getcmcforcard(card, face)
+    print(f"CMC: {cmc}")
     linelen = 32
     namecap = ".. "
     title = ""
