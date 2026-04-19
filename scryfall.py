@@ -68,7 +68,7 @@ def getarturlforcard(card, face = Face.FRONT):
 #Single Sided Cards
 def getnameforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][face.value]['name']
+        return card['card_faces'][face]['name']
     else:
         return card['name']
     
