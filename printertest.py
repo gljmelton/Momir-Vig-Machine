@@ -9,9 +9,9 @@ doublefacecardid="b3819a11-2f3e-4304-a1b0-6abf893c89c5"
 testcardid="6a0b230b-d391-4998-a3f7-7b158a0ec2cd"
 
 parser = argparse.ArgumentParser("printer_test")
-parser.add_argument("--image", help="Prints a test image")
-parser.add_argument("--double_face", help="Prints a double-faced card")
-parser.add_argument("--card", help="Prints a single-faced card")
+parser.add_argument("--image", help="Prints a test image", action="store_true")
+parser.add_argument("--double_face", help="Prints a double-faced card", action="store_true")
+parser.add_argument("--card", help="Prints a single-faced card", action="store_true")
 args = parser.parse_args()
 
 printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, heat_time=160)
