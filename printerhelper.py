@@ -23,14 +23,13 @@ def printcardface(printer, card, face):
         customimage(printer, scryfall.getimageforcard(card))
     printer.feed()
     printer.out(textwrap.fill(scryfall.gettypelineforcard(card, face), 32), bold=True)
-    printer.out(scryfall.getsetnameforcard(card), size=Size.SMALL)
     printer.feed()
     oracletext = scryfall.getoracletextforcard(card, face)
     for p in oracletext.splitlines():
         printer.out(textwrap.fill(p, 32))
         printer.feed()
     printer.feed()
-    printer.out(scryfall.getstatlineforcard(card, face), justify=Justify.RIGHT)
+    printer.out(scryfall.getsetandstatlineforcard(card, face))
 
 def customimage(printer, image):
     bitmap = printer.image_chunks(image)

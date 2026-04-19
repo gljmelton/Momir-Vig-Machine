@@ -84,6 +84,9 @@ def getimageforcard(card):
 def gettitlelineforcard(card, face = Face.FRONT):
     return formatforsingleline(getnameforcard(card, face), getcmcforcard(card, face))
 
+def getsetandstatlineforcard(card, face = Face.FRONT):
+    return formatforsingleline(getsetcodeforcard(card), getstatlineforcard(card, face))
+
 def formatforsingleline(first, second):
     linelen = 32
     firstcap = ".. "
@@ -119,6 +122,9 @@ def getoracletextforcard(card, face = Face.FRONT):
 
 def getsetnameforcard(card):
     return card["set_name"]
+
+def getsetcodeforcard(card):
+    return card["set"]
 
 def getstatlineforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
