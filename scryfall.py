@@ -97,6 +97,9 @@ def gettitlelineforcard(card, face = Face.FRONT):
     elif len(cmc) + len(name) < linelen:
         title = name + str(" " * (linelen - (len(cmc) + len(name)))) + cmc
 
+    else:
+        title = name + cmc
+        
     return title
 
 def gettypelineforcard(card, face = Face.FRONT):
