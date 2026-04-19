@@ -17,9 +17,7 @@ requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
 imagepath = config.get('GENERAL', 'imagepath')
 imagetype = config.get('GENERAL', 'imagetype')
-deletetype = config.get('GENERAL', 'deletetype')
 verbose = config.getboolean('GENERAL', 'verboselogging')
-validate = config.getboolean('GENERAL', 'validatedata')
 download = True
 
 darkthreshold = 0.1
@@ -49,20 +47,24 @@ def doesimageexist(card):
 
 filtereddata = scryfall.getfilteredcards()
 
-if deletetype == "hard":
+deleteall = input("Delete all images? (y,N): ")
+downloadmissingimages = input("Download missing images? (Y,n): ")
+deleteorphanedimages = input("Delete orphaned images for cards not in database? (Y,n): ")
+
+if deleteall.lower() == "y":
     #Clear out existing images in the image path
     print("Deleting all images...")
     files = glob.glob(f'{imagepath}*')
     for f in files:
         os.remove(f)
     
-    print("Delete complete!")
+    print("Delete all images complete!")
 
 # Download card images from filtered data, convert to monochrome, and save
 totalcards = len(filtereddata)
 print(f'Found {totalcards} cards after filtering.')
 
-if download:
+if downloadmissingimages.lower() == "y" or downloadmissingimages.lower() == "":
     for i in range(len(filtereddata)):
         progress = (i+1) / totalcards * 100
         printverbose(f'Downloading images for {filtereddata[i]["name"]} ({i+1}/{totalcards}) {progress:.2f}%...')
@@ -78,7 +80,7 @@ if download:
         print(f'({i+1}/{totalcards}|{progress:.2f}%) Downloaded {filtereddata[i]["name"]}')
 
 #Soft delete after downloading
-if deletetype == "soft":
+if deleteorphanedimages.lower() == "y" or deleteorphanedimages.lower() == "":
     #Soft delete images that no longer have a corresponding card in the filtered data
     print("Deleting images for cards not in filtered data...")
     existingimages = glob.glob(f'{imagepath}*')
@@ -92,56 +94,55 @@ if deletetype == "soft":
     
     print("")
 
+####VALIDATION
+print(f'Total cards: {len(filtereddata)} | Total images: {len(os.listdir(imagepath))}')
+print('Validating that all images exist...')
+for i in range(len(filtereddata)):
+    if not "id" in filtereddata[i]:
+        print(f'Card {filtereddata[i]["name"]} is missing an ID, skipping validation for this card.')
+        continue
 
-if validate:
-    print(f'Total cards: {len(filtereddata)} | Total images: {len(os.listdir(imagepath))}')
-    print('Validating that all images exist...')
-    for i in range(len(filtereddata)):
-        if not "id" in filtereddata[i]:
-            print(f'Card {filtereddata[i]["name"]} is missing an ID, skipping validation for this card.')
-            continue
+    card = filtereddata[i]
 
-        card = filtereddata[i]
-
-        if not os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}'):
-                print(f'Missing image for {card["name"]}!')
-        
-        printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
+    if not os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}'):
+            print(f'Missing image for {card["name"]}!')
     
-    print('Images exist for all cards!')
+    printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
 
-    print('Validating that all images are in card data...')
-    existingimages = glob.glob(f'{imagepath}*')
-    for i in range(len(existingimages)):
-        imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
-        if not any((('card_faces' in card) or ('card_faces' in card and card["id"] == imageid) or (card["id"] == imageid)) for card in filtereddata):
-            print(f'Image {existingimages[i]} does not have a corresponding card in data!')
-        
-        printverbose(f'Validated image {i+1} of {len(existingimages)} for {existingimages[i]}!')
+print('Images exist for all cards!')
 
-    print('Validating duplicate ids...')
-   
-    idlist = {}
-    for i in range(len(filtereddata)):
-        if not scryfall.getcardid(filtereddata[i]) in idlist:
-            idlist[str(scryfall.getcardid(filtereddata[i]))] = 1
-        else:
-            print(f'Duplicate id {scryfall.getcardid(filtereddata[i])} found for {filtereddata[i]["name"]}!')
-            idlist[str(scryfall.getcardid(filtereddata[i]))] += 1
+print('Validating that all images are in card data...')
+existingimages = glob.glob(f'{imagepath}*')
+for i in range(len(existingimages)):
+    imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
+    if not any((('card_faces' in card) or ('card_faces' in card and card["id"] == imageid) or (card["id"] == imageid)) for card in filtereddata):
+        print(f'Image {existingimages[i]} does not have a corresponding card in data!')
+    
+    printverbose(f'Validated image {i+1} of {len(existingimages)} for {existingimages[i]}!')
 
-    for i in range(len(idlist)):
-        if list(idlist.values())[i] > 1:
-            print(f'Duplicate id {list(idlist.keys())[i]} found for {idlist[list(idlist.keys())[i]]} cards!')
+print('Validating duplicate ids...')
 
-    print('Duplicate validation complete!')
-    print('Validating card types...')
-    for i in range(len(filtereddata)):
-        card = filtereddata[i]
-        if 'type_line' in card:
-            if not any (cardtype in card['type_line'].lower().split(' ') for cardtype in requiretypes):
-                print(f'Card {card["name"]} does not match required types!')
-        elif 'card_faces' in card and 'type_line' in card['card_faces'][0]:
-            if not any (cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in requiretypes):
-                print(f'Card {card["name"]} does not match required types!')
+idlist = {}
+for i in range(len(filtereddata)):
+    if not scryfall.getcardid(filtereddata[i]) in idlist:
+        idlist[str(scryfall.getcardid(filtereddata[i]))] = 1
+    else:
+        print(f'Duplicate id {scryfall.getcardid(filtereddata[i])} found for {filtereddata[i]["name"]}!')
+        idlist[str(scryfall.getcardid(filtereddata[i]))] += 1
 
-    print('Card type validation complete!')
+for i in range(len(idlist)):
+    if list(idlist.values())[i] > 1:
+        print(f'Duplicate id {list(idlist.keys())[i]} found for {idlist[list(idlist.keys())[i]]} cards!')
+
+print('Duplicate validation complete!')
+print('Validating card types...')
+for i in range(len(filtereddata)):
+    card = filtereddata[i]
+    if 'type_line' in card:
+        if not any (cardtype in card['type_line'].lower().split(' ') for cardtype in requiretypes):
+            print(f'Card {card["name"]} does not match required types!')
+    elif 'card_faces' in card and 'type_line' in card['card_faces'][0]:
+        if not any (cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in requiretypes):
+            print(f'Card {card["name"]} does not match required types!')
+
+print('Card type validation complete!')
