@@ -10,6 +10,8 @@ def printcard(printer, card):
     printcardface(printer, card, Face.FRONT)
     if scryfall.iscardtruedoubleface(card):
         printcardface(printer, card, Face.BACK)
+    
+    printer.feed(2)
 
 def printcardface(printer, card, face):
     printer.feed()
@@ -27,7 +29,6 @@ def printcardface(printer, card, face):
         printer.feed()
     printer.feed()
     printer.out(scryfall.getstatlineforcard(card), justify=Justify.RIGHT)
-    printer.feed(2)
 
 def customimage(printer, image):
     bitmap = printer.image_chunks(image)
