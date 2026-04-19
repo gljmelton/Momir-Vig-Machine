@@ -1,7 +1,7 @@
 import json
 import textwrap
 import configparser
-from enum import Enum
+from enum import IntEnum
 from PIL import Image
 
 config = configparser.ConfigParser()
@@ -17,7 +17,7 @@ pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').spl
 imagepath = config.get('GENERAL', 'imagepath')
 imagetype = config.get('GENERAL', 'imagetype')
 
-class Face(Enum):
+class Face(IntEnum):
     FRONT = 0
     BACK = 1
 
