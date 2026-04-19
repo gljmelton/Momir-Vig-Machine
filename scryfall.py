@@ -61,20 +61,20 @@ def getcardid(card):
 
 def getarturlforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][face]['image_uris']['art_crop']
+        return card['card_faces'][face.value]['image_uris']['art_crop']
     else:
         return card['image_uris']['art_crop']
 
 #Single Sided Cards
 def getnameforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][face]['name']
+        return card['card_faces'][face.value]['name']
     else:
         return card['name']
     
 def getcmcforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return card['card_faces'][face]['mana_cost']
+        return card['card_faces'][face.value]['mana_cost']
     else:
         return card['mana_cost']
 
@@ -82,8 +82,8 @@ def getimageforcard(card):
     return Image.open(f"{imagepath}{card['id']}.{imagetype}")
 
 def gettitlelineforcard(card, face = Face.FRONT):
-    name = getnameforcard(card, face)
-    cmc = getcmcforcard(card, face)
+    name = getnameforcard(card, face.value)
+    cmc = getcmcforcard(card, face.value)
     linelen = 32
     namecap = ".. "
     title = ""
@@ -99,7 +99,7 @@ def gettitlelineforcard(card, face = Face.FRONT):
 def gettypelineforcard(card, face = Face.FRONT):
     text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][face]['type_line']
+        text = card['card_faces'][face.value]['type_line']
     else:
         text = card['type_line']
     return text.replace('—','-')
@@ -107,7 +107,7 @@ def gettypelineforcard(card, face = Face.FRONT):
 def getoracletextforcard(card, face = Face.FRONT):
     text = ""
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        text = card['card_faces'][face]['oracle_text']
+        text = card['card_faces'][face.value]['oracle_text']
     else:
         text = card['oracle_text']
     text = text.replace('•', '*')
@@ -116,7 +116,7 @@ def getoracletextforcard(card, face = Face.FRONT):
     
 def getstatlineforcard(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
-        return f"{card['card_faces'][face]['power']}/{card['card_faces'][face]['toughness']}"
+        return f"{card['card_faces'][face.value]['power']}/{card['card_faces'][face.value]['toughness']}"
     elif 'power' in card and 'toughness' in card:
         return f"{card['power']}/{card['toughness']}"
     else:
