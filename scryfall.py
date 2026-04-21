@@ -65,15 +65,14 @@ def getarturlforcard(card, face = Face.FRONT):
     else:
         return card['image_uris']['art_crop']
 
-#Single Sided Cards
 def getnameforcard(card, face = Face.FRONT):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+    if 'card_faces' in card and card['layout']:
         return card['card_faces'][face]['name']
     else:
         return card['name']
     
 def getcmcforcard(card, face = Face.FRONT):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+    if 'card_faces' in card:
         return card['card_faces'][face]['mana_cost']
     else:
         return card['mana_cost']
@@ -104,7 +103,7 @@ def formatforsingleline(first, second):
 
 def gettypelineforcard(card, face = Face.FRONT):
     text = ""
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+    if 'card_faces' in card:
         text = card['card_faces'][face]['type_line']
     else:
         text = card['type_line']
@@ -112,7 +111,7 @@ def gettypelineforcard(card, face = Face.FRONT):
     
 def getoracletextforcard(card, face = Face.FRONT):
     text = ""
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+    if 'card_faces' in card:
         text = card['card_faces'][face]['oracle_text']
     else:
         text = card['oracle_text']
@@ -127,7 +126,7 @@ def getsetcodeforcard(card):
     return card["set"]
 
 def getstatlineforcard(card, face = Face.FRONT):
-    if 'card_faces' in card and card['layout'] not in pseudodoublefacedlayouts:
+    if 'card_faces' in card and card['layout']:
         return f"{card['card_faces'][face]['power']}/{card['card_faces'][face]['toughness']}"
     elif 'power' in card and 'toughness' in card:
         return f"{card['power']}/{card['toughness']}"

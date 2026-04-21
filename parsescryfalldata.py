@@ -20,8 +20,8 @@ imagetype = config.get('GENERAL', 'imagetype')
 verbose = config.getboolean('GENERAL', 'verboselogging')
 download = True
 
-darkthreshold = 0.1
-lightthreshold = 0.9
+darkthreshold = 0
+lightthreshold = 0.7
 
 def printverbose(string):
     if verbose:
@@ -37,6 +37,7 @@ def getimagethreshold(img):
 def requestandsaveimage(url, filename):
     request = requests.get(url, stream=True)
     img = Image.open(BytesIO(request.content))
+    img = img.convert("L")
     img = img.resize((384, 280), 0)
     img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
     img = img.convert("1")
