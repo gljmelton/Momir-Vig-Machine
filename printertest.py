@@ -16,7 +16,7 @@ parser.add_argument("--adventure", help="Prints an adventure for a pseudodoublef
 parser.add_argument("--card", help="Prints a single-faced card", action="store_true")
 args = parser.parse_args()
 
-printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, heat_time=160)
+printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, most_heated_point=3, heat_time=255)
 
 if args.image:
     imagecard = scryfall.getcardbyid(imagecardid)
