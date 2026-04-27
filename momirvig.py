@@ -2,210 +2,198 @@ import scryfall
 import printerhelper
 import random
 import time
-import struct
-import gpiozero
-from LCD import LCD
-from PIL import Image
-from thermalprinter.constants import Command
-from thermalprinter.exceptions import ThermalPrinterCommunicationError, ThermalPrinterValueError
-from thermalprinter import ThermalPrinter
-import configparser
+from Display import Display, LCDDisplay, CMDDisplay
+from Input import Input, CMDInput, GPIOInput
+from Printer import Printer, ThermPrinter, CMDPrinter
+import argparse
 
-#CONFIG
-config = configparser.ConfigParser()
-config.read('config.ini')
-BUTTON1PIN = config.getint('GPIO', 'button1pin')
-BUTTON2PIN = config.getint('GPIO', 'button2pin')
-BUTTON3PIN = config.getint('GPIO', 'button3pin')
-BUTTONBOUNCETIME = config.getfloat('GPIO', 'buttonbouncetime')
+parser = argparse.ArgumentParser("printer_test")
+parser.add_argument("--cmd", help="Uses the commandline to display instead if screen", action="store_true")
+args = parser.parse_args()
 
-#Button inputs
-button1 = gpiozero.Button(BUTTON1PIN, bounce_time=BUTTONBOUNCETIME)
-button2 = gpiozero.Button(BUTTON2PIN, bounce_time=BUTTONBOUNCETIME)
-button3 = gpiozero.Button(BUTTON3PIN, bounce_time=BUTTONBOUNCETIME)
-
-vigstates = {
+vig_states = {
     "Init": 0,
     "ChooseCMC": 1,
     "SelectCard": 2,
     "PrintCard": 3
 }
 
-targetcmc = 1
-mincmc = 1
-maxcmc = 1
-LCD = LCD(i2c_addr = 0x27, backlight=True)
-printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, most_heated_point=3)
+target_cmc = 1
+min_cmc = 1
+max_cmc = 1
+displayHandler = Display()
+inputHandler = Input()
+printerHandler = Printer()
 
-cardlist = []
-currentstate = vigstates["Init"]
-selectedcard = None
+card_list = []
+current_state = vig_states["Init"]
+selected_card = None
+
+if args.cmd is True:
+    print ("Creating CMD services")
+    displayHandler = CMDDisplay()
+    inputHandler = CMDInput()
+    printerHandler = CMDPrinter()
+else:
+    print("Creating hardware services")
+    displayHandler = LCDDisplay()
+    inputHandler = GPIOInput()
+    printerHandler = ThermPrinter()
 
 #Helper functions
-def resetprinter():
-    print("Resetting printer from error")
-    printer.offline() 
-    time.sleep(2)
-    printer.online()
+def set_max_cmc():
+    global max_cmc
+    for card in card_list:
+        if 'cmc' in card and card['cmc'] > max_cmc:
+            max_cmc = card['cmc']
 
-def setmaxcmc():
-    global maxcmc
-    for card in cardlist:
-        if 'cmc' in card and card['cmc'] > maxcmc:
-            maxcmc = card['cmc']
+def get_random_card_for_cmc():
+    valid_cmc_cards = [card for card in card_list if 'cmc' in card and card['cmc'] == target_cmc]
+    if len(valid_cmc_cards) == 0:
+        print("No valid CMC card found!")
+        return None
 
-def getrandomcardforcmc():
-    validcmccards = [card for card in cardlist if 'cmc' in card and card['cmc'] == targetcmc]
-    return validcmccards[random.randint(0, len(validcmccards)-1)]
+    return valid_cmc_cards[random.randint(0, len(valid_cmc_cards)-1)]
 
-def switchstate(newstate):
-    global currentstate
+def switch_state(new_state):
+    global current_state
 
     #On exit functions
-    if currentstate == vigstates["Init"]:
+    if current_state == vig_states["Init"]:
         pass
-    elif currentstate == vigstates["ChooseCMC"]:
-        exitchoosecmcstate()
-    elif currentstate == vigstates["SelectCard"]:
+    elif current_state == vig_states["ChooseCMC"]:
+        exit_choose_cmc_state()
+    elif current_state == vig_states["SelectCard"]:
         pass
-    elif currentstate == vigstates["PrintCard"]:
+    elif current_state == vig_states["PrintCard"]:
         pass
 
     #On enter functions
-    if newstate == vigstates["Init"]:
+    if new_state == vig_states["Init"]:
         pass
-    elif newstate == vigstates["ChooseCMC"]:
-        enterchoosecmcstate()
-    elif newstate == vigstates["SelectCard"]:
-        selectcard()
-    elif newstate == vigstates["PrintCard"]:
-        printcard()
+    elif new_state == vig_states["ChooseCMC"]:
+        enter_choose_cmc_state()
+    elif new_state == vig_states["SelectCard"]:
+        select_card()
+    elif new_state == vig_states["PrintCard"]:
+        print_card()
 
-    print(f'Switching from state {currentstate} to {newstate}...')
-    currentstate = newstate
+    print(f'Switching from state {current_state} to {new_state}...')
+    current_state = new_state
 #####################
 
 #Init
-def initvig():
+def init_vig():
     print("Initializing...")
-    LCD.message("Initializing", 1)
-    LCD.message("data...", 2)
-    printer.feed()
-    printer.out("Welcome to Momir Vig Machine!")
-    printer.feed(2)
-    global cardlist
-    cardlist = scryfall.getfilteredcards()
-    setmaxcmc()
+
+    displayHandler.update_display("Initializing", 1)
+    displayHandler.update_display("data...", 2)
+    printerHandler.feed()
+    printerHandler.out("Welcome to Momir Vig Machine!")
+    printerHandler.feed(2)
+    global card_list
+    card_list = scryfall.get_filtered_cards()
+    set_max_cmc()
 
     print('Initialization complete!')
-    LCD.message("Complete!", 2)
+    displayHandler.update_display("Complete!", 2)
 
-    switchstate(vigstates["ChooseCMC"])
+    switch_state(vig_states["ChooseCMC"])
 ##############
 
 #Choose CMC state
-def increasetargetcmc():
-    global targetcmc
-    if targetcmc < maxcmc:
-        targetcmc += 1
+def increase_target_cmc():
+    global target_cmc
+    if target_cmc < max_cmc:
+        target_cmc += 1
     else:
-        targetcmc = maxcmc
+        target_cmc = max_cmc
     
-    print(f'Target CMC set to {int(targetcmc)}!')
-    LCD.clear()
-    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
+    print(f'Target CMC set to {int(target_cmc)}!')
+    displayHandler.clear()
+    displayHandler.update_display(f'Target CMC: {int(target_cmc)}  ', 1)
 
-def decreasetargetcmc():
-    global targetcmc
-    if targetcmc > mincmc:
-        targetcmc -= 1
+def decrease_target_cmc():
+    global target_cmc
+    if target_cmc > min_cmc:
+        target_cmc -= 1
     else:
-        targetcmc = mincmc
+        target_cmc = min_cmc
     
-    print(f'Target CMC set to {int(targetcmc)}!')
-    LCD.clear()
-    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
+    print(f'Target CMC set to {int(target_cmc)}!')
+    displayHandler.clear()
+    displayHandler.update_display(f'Target CMC: {int(target_cmc)}  ', 1)
 
-def printtargetcmc():
-    switchstate(vigstates["SelectCard"])
+def print_target_cmc():
+    switch_state(vig_states["SelectCard"])
 
-def enterchoosecmcstate():
+def enter_choose_cmc_state():
     print("Entering choose CMC state...")
     
-    LCD.clear()
-    LCD.message(f'Target CMC: {int(targetcmc)}  ', 1)
+    displayHandler.clear()
+    displayHandler.update_display(f'Target CMC: {int(target_cmc)}  ', 1)
     
     #Bind increase button
-    button1.when_pressed = increasetargetcmc
-    button2.when_pressed = decreasetargetcmc
-    button3.when_pressed = printtargetcmc
+    inputHandler.up_pressed_callback = increase_target_cmc
+    inputHandler.down_pressed_callback = decrease_target_cmc
+    inputHandler.enter_pressed_callback = print_target_cmc
     
-def exitchoosecmcstate():
+def exit_choose_cmc_state():
     print("Exiting choose CMC state...")
-    if button1.when_pressed is not None:
-        button1.when_pressed = None
-    if button2.when_pressed is not None:
-        button2.when_pressed = None
-    if button3.when_pressed is not None:
-        button3.when_pressed = None
+    inputHandler.clear_callbacks()
 
-def choosecmc():
+def choose_cmc():
     pass
 #################
 
 #Select card state
-def selectcard():
+def select_card():
     print("Entering select card state...")
-    printer.flush()
-    LCD.clear()
-    LCD.message("Selecting card...", 1)
-    global selectedcard
-    selectedcard = getrandomcardforcmc()
-    LCD.clear()
-    LCD.message(f'Chosen card:', 1)
-    LCD.message(f'{selectedcard["name"]}  ', 2)
-    print(f'Chosen card: {selectedcard["name"]}')
-    time.sleep(5) #Delete when this will actually go to the printer
-    switchstate(vigstates["PrintCard"])
+    displayHandler.clear()
+    displayHandler.update_display("Selecting card...", 1)
+    global selected_card
+    selected_card = get_random_card_for_cmc()
+    displayHandler.clear()
+    if selected_card is None:
+        print(f'No cards at cmc {int(target_cmc)}!')
+        displayHandler.update_display("No cmc {int(target_cmc)} cards!", 1)
+        time.sleep(3) #Pause a bit so we can see the message on screen
+        switch_state(vig_states["ChooseCMC"])
+    else:
+        displayHandler.update_display(f'Chosen card:', 1)
+        displayHandler.update_display(f'{selected_card["name"]}  ', 2)
+        print(f'Chosen card: {selected_card["name"]}')
+        switch_state(vig_states["PrintCard"])
 ######################
 
 #Print card state
-def printcard():
+def print_card():
     print("Entering print card state...")
     #Print card here using printer library
     print("Sending print request to printer...")
-    try:
-        printerhelper.printcard(printer, selectedcard)
-        print("Print sent!")
-    except ThermalPrinterCommunicationError:
-        print("ERROR - ThermalPrinterCommunicationError exception")
-        LCD.message("ERROR")
-        resetprinter()
-    except ThermalPrinterValueError:
-        print("ERROR - ThermalPrinterCommunicationError exception")
-        LCD.message("ERROR")
-        resetprinter()
-    switchstate(vigstates["ChooseCMC"])
+    printerhelper.print_card(printerHandler, selected_card)
+    print("Print sent!")
+    switch_state(vig_states["ChooseCMC"])
 ##################
 
-def updatevig():
-    if currentstate == vigstates["Init"]:
-        initvig()
-    elif currentstate == vigstates["ChooseCMC"]:
+def update_vig():
+    if current_state == vig_states["Init"]:
+        init_vig()
+    elif current_state == vig_states["ChooseCMC"]:
         pass
 
 
 def main():
     while True:
-        updatevig()
+        update_vig()
 
 def cleanup():
     print("Cleaning up...")
-    LCD.clear()
+    displayHandler.clear()
 
-    LCD.message("Goodbye!", 1)
+    displayHandler.update_display("Goodbye!", 1)
     time.sleep(2)
-    LCD.clear()
+    displayHandler.clear()
 
 #Main loop
 if __name__ == '__main__':

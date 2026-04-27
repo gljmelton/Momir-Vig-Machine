@@ -2,36 +2,34 @@ import scryfall
 import textwrap
 import time
 import struct
-from thermalprinter.constants import Justify
-from thermalprinter.constants import Size
 from thermalprinter.constants import Command
 from scryfall import Face
 
-def printcard(printer, card):
-    printcardface(printer, card, Face.FRONT)
-    if scryfall.iscardtruedoubleface(card):
-        printcardface(printer, card, Face.BACK)
+def print_card(printer, card):
+    print_card_face(printer, card, Face.FRONT)
+    if scryfall.is_card_true_double_face(card):
+        print_card_face(printer, card, Face.BACK)
     
     printer.feed(2)
 
-def printcardface(printer, card, face):
+def print_card_face(printer, card, face):
     printer.feed()
     if face is Face.BACK:
         printer.out("-"*32)
-    printer.out(scryfall.gettitlelineforcard(card, face), bold=True)
+    printer.out(scryfall.get_title_line_for_card(card, face), bold=True)
     if face is Face.FRONT:
-        customimage(printer, scryfall.getimageforcard(card))
+        printer.image(scryfall.get_image_for_card(card))
     printer.feed()
-    printer.out(textwrap.fill(scryfall.gettypelineforcard(card, face), 32), bold=True)
+    printer.out(textwrap.fill(scryfall.get_type_line_for_card(card, face), 32), bold=True)
     printer.feed()
-    oracletext = scryfall.getoracletextforcard(card, face)
-    for p in oracletext.splitlines():
+    oracle_text = scryfall.get_oracle_text_for_card(card, face)
+    for p in oracle_text.splitlines():
         printer.out(textwrap.fill(p, 32))
         printer.feed()
     printer.feed()
-    printer.out(scryfall.getsetandstatlineforcard(card, face))
+    printer.out(scryfall.get_set_and_stat_line_for_card(card, face))
 
-def customimage(printer, image):
+def custom_image(printer, image):
     bitmap = printer.image_chunks(image)
     width, height = image.size
     row_bytes = int((width + 7) / 8)  # Round up to next byte boundary

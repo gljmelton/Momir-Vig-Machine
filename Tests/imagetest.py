@@ -1,6 +1,5 @@
-from PIL import Image, ImageStat, ImageOps
+from PIL import Image, ImageStat, ImageEnhance
 from io import BytesIO
-import json
 import scryfall
 import requests
 import configparser
@@ -14,10 +13,10 @@ darkId="d99869b4-0bb6-444a-bdc4-5916371c9d29"
 
 testId = "2c3549f6-25df-4ea7-84ad-922ccd4af6b2"
 darkthreshold = 0
-lightthreshold = 0.7
-testcard = scryfall.getcardbyid(testId)
-lightcard = scryfall.getcardbyid(lightId)
-darkcard = scryfall.getcardbyid(darkId)
+lightthreshold = 0.85
+testcard = scryfall.get_card_by_id(testId)
+lightcard = scryfall.get_card_by_id(lightId)
+darkcard = scryfall.get_card_by_id(darkId)
 
 def getimagebrightness(img):
     return ImageStat.Stat(img).mean[0]
@@ -28,20 +27,25 @@ def getimagethreshold(img):
 
 def grabimageunfiltered(card, name):
     print(f"Grabbing unfiltered image for {name} card")
-    request = requests.get(scryfall.getarturlforcard(card), stream=True)
+    request = requests.get(scryfall.get_art_url_for_card(card), stream=True)
     img = Image.open(BytesIO(request.content))
     img.save(f'test-image-unfiltered-{name}.png')
 
 def grabimageandprocess(card, name):
     print(f"Grabbing and processing image for {name} card")
-    request = requests.get(scryfall.getarturlforcard(card), stream=True)
+    request = requests.get(scryfall.get_art_url_for_card(card), stream=True)
     img = Image.open(BytesIO(request.content))
     img = img.convert("L")
+    print(f"{name} image brightness: {getimagebrightness(img)}")
+    if getimagebrightness(img) < 60:
+        enhancer = ImageEnhance.Brightness(img)
+        print("Enhancing brightness")
+        img = enhancer.enhance(1.5)
+
     img = img.resize((384, 280), 0)
     #img = ImageOps.posterize(img, 1)
     print(f"{name} image threshold: {getimagethreshold(img)*255}")
     img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
-    print(f"{name} image brightness: {getimagebrightness(img)}")
     img = img.convert("1")
     img.save(f'test-image-{name}.png')
 

@@ -1,6 +1,15 @@
 #https://github.com/sterlingbeason/LCD-1602-I2C/blob/master/LCD.py
-import smbus
+import platform
 import time
+
+is_linux = platform.system() == 'Linux'
+if is_linux:
+    try:
+        import smbus
+    except ImportError:
+        smbus = None
+else:
+    smbus = None
 
 class LCD:
     def __init__(self, pi_rev = 2, i2c_addr = 0x3F, backlight = True):
@@ -29,6 +38,11 @@ class LCD:
         self.E_DELAY = 0.0005
 
         # Open I2C interface
+        if not is_linux:
+            raise EnvironmentError('LCD I2C access via smbus is only supported on Linux.')
+        if smbus is None:
+            raise ImportError('smbus module is required on Linux and was not found.')
+
         if pi_rev == 2:
             # Rev 2 Pi uses 1
             self.bus = smbus.SMBus(1)
