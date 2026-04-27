@@ -19,18 +19,18 @@ args = parser.parse_args()
 printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, most_heated_point=3, heat_time=255)
 
 if args.image:
-    imagecard = scryfall.getcardbyid(imagecardid)
-    img = scryfall.getimageforcard(imagecard)
-    printerhelper.customimage(printer, img)
+    imagecard = scryfall.get_card_by_id(imagecardid)
+    img = scryfall.get_image_for_card(imagecard)
+    printerhelper.custom_image(printer, img)
 
 if args.double_face:
-    dfc = scryfall.getcardbyid(doublefacecardid)
-    printerhelper.printcard(printer, dfc)
+    dfc = scryfall.get_card_by_id(doublefacecardid)
+    printerhelper.print_card(printer, dfc)
 
 if args.adventure:
-    adventure = scryfall.getcardbyid(adventurecardid)
-    printerhelper.printcard(printer, adventure)
+    adventure = scryfall.get_card_by_id(adventurecardid)
+    printerhelper.print_card(printer, adventure)
 
 if args.card:
-    card = scryfall.getcardbyid(testcardid)
-    printerhelper.printcard(printer, card)
+    card = scryfall.get_card_by_id(testcardid)
+    printerhelper.print_card(printer, card)

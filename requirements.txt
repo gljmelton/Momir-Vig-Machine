@@ -1,11 +1,12 @@
+wheel
+smbus; sys_platform=='Linux'
 swig
 gpiozero
 pyserial
-rplcd
-smbus
-smbus2
+rplcd; sys_platform=='Linux'
 requests
 Pillow
 thermalprinter
 numpy
 argparse
+keyboard; sys_platform=='Windows'

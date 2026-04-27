@@ -5,23 +5,22 @@ import requests
 import configparser
 import glob
 from io import BytesIO
-from PIL import Image
-from PIL import ImageStat
+from PIL import Image, ImageStat, ImageEnhance
 import numpy
 import scryfall
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-requiretypes = config.get('GENERAL', 'requiretypes').split(', ')
-pseudodoublefacedlayouts = config.get('GENERAL', 'pseudodoublefacedlayouts').split(', ')
-imagepath = config.get('GENERAL', 'imagepath')
-imagetype = config.get('GENERAL', 'imagetype')
+requiretypes = config.get('GENERAL', 'require_types').split(', ')
+pseudodoublefacedlayouts = config.get('GENERAL', 'pseudo_double_faced_layouts').split(', ')
+imagepath = config.get('GENERAL', 'image_path')
+imagetype = config.get('GENERAL', 'image_type')
 verbose = config.getboolean('GENERAL', 'verboselogging')
 download = True
 
 darkthreshold = 0
-lightthreshold = 0.7
+lightthreshold = 0.85
 
 def printverbose(string):
     if verbose:
@@ -38,15 +37,20 @@ def requestandsaveimage(url, filename):
     request = requests.get(url, stream=True)
     img = Image.open(BytesIO(request.content))
     img = img.convert("L")
+    if getimagebrightness(img) < 60:
+        enhancer = ImageEnhance.Brightness(img)
+        print("Enhancing brightness")
+        img = enhancer.enhance(1.5)
+
     img = img.resize((384, 280), 0)
     img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
     img = img.convert("1")
     img.save(f'{imagepath}{filename}.{imagetype}')
 
 def doesimageexist(card):
-    return os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}')
+    return os.path.exists(f'{imagepath}{scryfall.get_card_id(card)}.{imagetype}')
 
-filtereddata = scryfall.getfilteredcards()
+filtereddata = scryfall.get_filtered_cards()
 
 deleteall = input("Delete all images? (y,N): ")
 downloadmissingimages = input("Download missing images? (Y,n): ")
@@ -76,7 +80,7 @@ if downloadmissingimages.lower() == "y" or downloadmissingimages.lower() == "":
             printverbose(f'Image already exists for {filtereddata[i]["name"]}, skipping download.')
             continue
 
-        requestandsaveimage(scryfall.getarturlforcard(card), scryfall.getcardid(card))
+        requestandsaveimage(scryfall.get_art_url_for_card(card), scryfall.get_card_id(card))
             
         print(f'({i+1}/{totalcards}|{progress:.2f}%) Downloaded {filtereddata[i]["name"]}')
 
@@ -105,7 +109,7 @@ for i in range(len(filtereddata)):
 
     card = filtereddata[i]
 
-    if not os.path.exists(f'{imagepath}{scryfall.getcardid(card)}.{imagetype}'):
+    if not os.path.exists(f'{imagepath}{scryfall.get_card_id(card)}.{imagetype}'):
             print(f'Missing image for {card["name"]}!')
     
     printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
@@ -125,11 +129,11 @@ print('Validating duplicate ids...')
 
 idlist = {}
 for i in range(len(filtereddata)):
-    if not scryfall.getcardid(filtereddata[i]) in idlist:
-        idlist[str(scryfall.getcardid(filtereddata[i]))] = 1
+    if not scryfall.get_card_id(filtereddata[i]) in idlist:
+        idlist[str(scryfall.get_card_id(filtereddata[i]))] = 1
     else:
-        print(f'Duplicate id {scryfall.getcardid(filtereddata[i])} found for {filtereddata[i]["name"]}!')
-        idlist[str(scryfall.getcardid(filtereddata[i]))] += 1
+        print(f'Duplicate id {scryfall.get_card_id(filtereddata[i])} found for {filtereddata[i]["name"]}!')
+        idlist[str(scryfall.get_card_id(filtereddata[i]))] += 1
 
 for i in range(len(idlist)):
     if list(idlist.values())[i] > 1:
