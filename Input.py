@@ -1,6 +1,15 @@
 import configparser
 import gpiozero
-import keyboard
+import platform
+
+is_windows = platform.system() == 'Windows'
+if is_windows:
+    try:
+        import keyboard
+    except ImportError:
+        keyboard = None
+else:
+    keyboard = None
 
 class Input:
     up_pressed_callback = None
