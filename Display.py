@@ -12,12 +12,10 @@ class Display:
 
 class LCDDisplay(Display):
     def __init__(self):
-        print("Initializing LCD Display")
         super().__init__()
         self.lcd = LCD(i2c_addr = 0x27, backlight=True)
 
     def update_display(self, text, line=1):
-        print("Updating lcd display")
         self.lcd.message(text, line)
     
     def clear(self):

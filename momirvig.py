@@ -31,12 +31,12 @@ selected_card = None
 
 if args.cmd is True:
     print ("Creating CMD services")
-    display = CMDDisplay()
+    displayHandler = CMDDisplay()
     inputHandler = CMDInput()
     printerHandler = CMDPrinter()
 else:
     print("Creating hardware services")
-    display = LCDDisplay()
+    displayHandler = LCDDisplay()
     inputHandler = GPIOInput()
     printerHandler = ThermPrinter()
 
