@@ -157,6 +157,7 @@ def select_card():
     if selected_card is None:
         print(f'No cards at cmc {int(target_cmc)}!')
         displayHandler.update_display("No cmc {int(target_cmc)} cards!", 1)
+        time.sleep(3) #Pause a bit so we can see the message on screen
         switch_state(vig_states["ChooseCMC"])
     else:
         displayHandler.update_display(f'Chosen card:', 1)
