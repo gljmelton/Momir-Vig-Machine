@@ -50,9 +50,7 @@ def get_random_card_for_cmc():
     if len(valid_cmc_cards) == 0:
         print("No valid CMC card found!")
         return None
-    print(f'{len(valid_cmc_cards)} valid CMC cards found:')
-    for card in valid_cmc_cards:
-        print(card['name'])
+
     return valid_cmc_cards[random.randint(0, len(valid_cmc_cards)-1)]
 
 def switch_state(new_state):
