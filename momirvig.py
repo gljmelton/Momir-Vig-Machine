@@ -29,11 +29,13 @@ card_list = []
 current_state = vig_states["Init"]
 selected_card = None
 
-if args.cmd:
+if args.cmd is True:
+    print ("Creating CMD services")
     display = CMDDisplay()
     inputHandler = CMDInput()
     printerHandler = CMDPrinter()
 else:
+    print("Creating hardware services")
     display = LCDDisplay()
     inputHandler = GPIOInput()
     printerHandler = ThermPrinter()
