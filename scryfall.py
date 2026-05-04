@@ -1,8 +1,10 @@
 import json
+import time
 import textwrap
 import configparser
 from enum import IntEnum
 from PIL import Image
+from GameMode import Filter
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -21,39 +23,68 @@ class Face(IntEnum):
     FRONT = 0
     BACK = 1
 
-def match_exclusions(card):
-    if card["set_type"] in excluded_sets:
-        return False
+def match_exclusions(card, filter_data):
     if card["layout"] in excluded_layouts:
+        #print(f"card {card['name']} layout excluded: {card['layout']}")
         return False
-    if exclude_playtest == True and 'promo_types' in card and 'playtest' in card['promo_types']:
-        return False
-    
-    return True
-      
-def match_front_face_type(card):
+
+    #Exclude cards that are legal in exclude_legal
+    if filter_data.legal_include is not None:
+        for legalities in filter_data.legal_include:
+            if card['legalities'][legalities] == "not_legal":
+                #print(f"card {card['name']} legality not included")
+                return False
+
+    if filter_data.type_exclude is not None:
+        # Include cards of the required type
         if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
-            return any (cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in require_types)
+            if any(cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in
+                       filter_data.type_exclude):
+                #print(f"card {card['name']} type excluded")
+                return False
         elif 'type_line' in card:
-            return any (cardtype in card['type_line'].lower().split(' ') for cardtype in require_types)
-        return False
+            if any(cardtype in card['type_line'].lower().split(' ') for cardtype in filter_data.type_exclude):
+                #print(f"card {card['name']} type excluded")
+                return False
+
+    return True
+
+def match_inclusions(card, filter_data):
+    if filter_data.legal_include is not None:
+        for legalities in filter_data.legal_include:
+            if card['legalities'][legalities] == "not_legal":
+                #print(f"card {card['name']} legality not included")
+                return False
+
+    #Include cards of the required type
+    if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
+        if not any(cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in filter_data.type_include):
+            #print(f"card {card['name']} type not included")
+            return False
+    elif 'type_line' in card:
+        if not any(cardtype in card['type_line'].lower().split(' ') for cardtype in filter_data.type_include):
+            #print(f"card {card['name']} type not included")
+            return False
+
+    return True
 
 def get_card_by_id(id):
     with open(bulk_data_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
     return [
         card for card in data if card['id'] == id                                          #Exclude cards based on type line of the front face
     ][0]
 
-def get_filtered_cards():
+def get_filtered_cards(data_filter:Filter):
+    starttime = time.time()
     with open(bulk_data_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
+    print(f"Loading card data took {round(time.time() - starttime, 2)} seconds")
+
     return [
-        card for card in data if match_exclusions(card) and  #Exclude cards based on layout and set type
-                                 (any(game in card['games'] for game in require_games) and  #Exclude cards based on game
-                                  match_front_face_type(card))                                            #Exclude cards based on type line of the front face
+        card for card in data if match_exclusions(card, data_filter) and #Exclude cards based on layout and set type
+                                 match_inclusions(card, data_filter) and
+            (any(game in card['games'] for game in require_games))                               #Exclude cards based on type line of the front face
     ]
     
 def get_card_id(card):

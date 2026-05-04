@@ -5,6 +5,7 @@ import time
 from Display import Display, LCDDisplay, CMDDisplay
 from Input import Input, CMDInput, GPIOInput
 from Printer import Printer, ThermPrinter, CMDPrinter
+from GameMode import GameModeManager
 import argparse
 
 parser = argparse.ArgumentParser("printer_test")
@@ -13,17 +14,19 @@ args = parser.parse_args()
 
 vig_states = {
     "Init": 0,
-    "ChooseCMC": 1,
-    "SelectCard": 2,
-    "PrintCard": 3
+    "ChooseMode": 1,
+    "ChooseCMC": 2,
+    "SelectCard": 3,
+    "PrintCard": 4
 }
 
 target_cmc = 1
-min_cmc = 1
+min_cmc = 0
 max_cmc = 1
 displayHandler = Display()
 inputHandler = Input()
 printerHandler = Printer()
+game_mode_manager = GameModeManager()
 
 card_list = []
 current_state = vig_states["Init"]
@@ -71,6 +74,8 @@ def switch_state(new_state):
     #On enter functions
     if new_state == vig_states["Init"]:
         pass
+    elif new_state == vig_states["ChooseMode"]:
+        enter_choose_mode()
     elif new_state == vig_states["ChooseCMC"]:
         enter_choose_cmc_state()
     elif new_state == vig_states["SelectCard"]:
@@ -86,18 +91,45 @@ def switch_state(new_state):
 def init_vig():
     print("Initializing...")
 
-    displayHandler.update_display("Initializing", 1)
-    displayHandler.update_display("data...", 2)
+    displayHandler.update_display("Initializing...", 1)
     printerHandler.feed()
     printerHandler.out("Welcome to Momir Vig Machine!")
     printerHandler.feed(2)
-    global card_list
-    card_list = scryfall.get_filtered_cards()
-    set_max_cmc()
 
     print('Initialization complete!')
     displayHandler.update_display("Complete!", 2)
 
+    switch_state(vig_states["ChooseMode"])
+##############
+
+#Choose Mode state
+def enter_choose_mode():
+    displayHandler.update_display("Selected mode:", 1)
+    displayHandler.update_display(game_mode_manager.get_selected_game_mode_name(), 2)
+    inputHandler.up_pressed_callback = increment_game_mode
+    inputHandler.down_pressed_callback = decrement_game_mode
+    inputHandler.enter_pressed_callback = select_mode
+
+def increment_game_mode():
+    game_mode_manager.increment_selected_mode()
+    displayHandler.update_display(game_mode_manager.get_selected_game_mode_name(), 2)
+
+def decrement_game_mode():
+    game_mode_manager.decrement_selected_mode()
+    displayHandler.update_display(game_mode_manager.get_selected_game_mode_name(), 2)
+
+def select_mode():
+    inputHandler.up_pressed_callback = None
+    inputHandler.down_pressed_callback = None
+    inputHandler.enter_pressed_callback = None
+
+    #Initialize card data
+    displayHandler.update_display("Building data...")
+    global card_list
+    card_list = scryfall.get_filtered_cards(game_mode_manager.get_filter())
+    set_max_cmc()
+
+    #then go to choosecmc
     switch_state(vig_states["ChooseCMC"])
 ##############
 
@@ -179,8 +211,8 @@ def print_card():
 def update_vig():
     if current_state == vig_states["Init"]:
         init_vig()
-    elif current_state == vig_states["ChooseCMC"]:
-        pass
+    #elif current_state == vig_states["ChooseCMC"]:
+    #    pass
 
 
 def main():

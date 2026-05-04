@@ -1,7 +1,5 @@
-from thermalprinter.exceptions import ThermalPrinterCommunicationError, ThermalPrinterValueError
 from thermalprinter.constants import Command
 from thermalprinter import ThermalPrinter
-from PIL import Image
 import time
 import struct
 
@@ -22,6 +20,7 @@ class ThermPrinter(Printer):
     def __init__(self):
         super().__init__()
         self.printer = ThermalPrinter(port="/dev/serial0", baudrate=9600, most_heated_point=3)
+        time.sleep(2)
 
     def feed(self, lines=1):
         self.printer.feed(lines)
