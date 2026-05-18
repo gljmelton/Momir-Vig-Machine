@@ -5,6 +5,13 @@ import struct
 from thermalprinter.constants import Command
 from scryfall import Face
 
+def print_rules(printer, rules):
+    printer.feed()
+    for p in rules.splitlines():
+        printer.out(textwrap.fill(p, 32))
+        printer.feed()
+    printer.feed()
+
 def print_card(printer, card):
     print_card_face(printer, card, Face.FRONT)
     if scryfall.is_card_true_double_face(card):
@@ -17,8 +24,7 @@ def print_card_face(printer, card, face):
     if face is Face.BACK:
         printer.out("-"*32)
     printer.out(scryfall.get_title_line_for_card(card, face), bold=True)
-    if face is Face.FRONT:
-        printer.image(scryfall.get_image_for_card(card))
+    printer.image(scryfall.get_image_for_card(card, face))
     printer.feed()
     printer.out(textwrap.fill(scryfall.get_type_line_for_card(card, face), 32), bold=True)
     printer.feed()

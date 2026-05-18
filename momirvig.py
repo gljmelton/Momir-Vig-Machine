@@ -1,3 +1,4 @@
+import GameMode
 import scryfall
 import printerhelper
 import random
@@ -126,7 +127,10 @@ def select_mode():
     #Initialize card data
     displayHandler.update_display("Building data...")
     global card_list
-    card_list = scryfall.get_filtered_cards(game_mode_manager.get_filter())
+    card_list = scryfall.get_filtered_cards(game_mode_manager.get_game_mode())
+
+    printerhelper.print_rules(printerHandler, game_mode_manager.get_game_mode().rules)
+
     set_max_cmc()
 
     #then go to choosecmc

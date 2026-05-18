@@ -1,4 +1,4 @@
-from PIL import Image, ImageStat, ImageEnhance
+from PIL import Image, ImageStat, ImageEnhance, ImageOps
 from io import BytesIO
 import scryfall
 import requests
@@ -29,30 +29,32 @@ def grabimageunfiltered(card, name):
     print(f"Grabbing unfiltered image for {name} card")
     request = requests.get(scryfall.get_art_url_for_card(card), stream=True)
     img = Image.open(BytesIO(request.content))
-    img.save(f'test-image-unfiltered-{name}.png')
+    img.save(f'Tests/test-image-unfiltered-{name}.png')
+    return img
 
-def grabimageandprocess(card, name):
-    print(f"Grabbing and processing image for {name} card")
-    request = requests.get(scryfall.get_art_url_for_card(card), stream=True)
-    img = Image.open(BytesIO(request.content))
+def processimage(img, name):
+    print(f"Processing image for {name} card")
     img = img.convert("L")
+    img = ImageOps.autocontrast(img)
     print(f"{name} image brightness: {getimagebrightness(img)}")
-    if getimagebrightness(img) < 60:
-        enhancer = ImageEnhance.Brightness(img)
-        print("Enhancing brightness")
-        img = enhancer.enhance(1.5)
+    #if getimagebrightness(img) < 60:
+    #    enhancer = ImageEnhance.Brightness(img)
+    #    print("Enhancing brightness")
+    #    img = enhancer.enhance(1.5)
 
     img = img.resize((384, 280), 0)
     #img = ImageOps.posterize(img, 1)
     print(f"{name} image threshold: {getimagethreshold(img)*255}")
     img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
     img = img.convert("1")
-    img.save(f'test-image-{name}.png')
+    img.save(f'Tests/test-image-{name}.png')
 
-grabimageunfiltered(testcard, "mid")
-grabimageunfiltered(lightcard, "light")
-grabimageunfiltered(darkcard, "dark")
 
-grabimageandprocess(testcard, "mid")
-grabimageandprocess(lightcard, "light")
-grabimageandprocess(darkcard, "dark")
+
+mid_img = grabimageunfiltered(testcard, "mid")
+light_img = grabimageunfiltered(lightcard, "light")
+dark_img = grabimageunfiltered(darkcard, "dark")
+
+processimage(mid_img, "mid")
+processimage(light_img, "light")
+processimage(dark_img, "dark")

@@ -1,10 +1,10 @@
 import json
+import sys
 import time
-import textwrap
 import configparser
 from enum import IntEnum
 from PIL import Image
-from GameMode import Filter
+import GameMode
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -23,50 +23,64 @@ class Face(IntEnum):
     FRONT = 0
     BACK = 1
 
-def match_exclusions(card, filter_data):
-    if card["layout"] in excluded_layouts:
-        #print(f"card {card['name']} layout excluded: {card['layout']}")
-        return False
+def match_exclusions(card, filter_data : GameMode.GameMode):
+    if excluded_layouts:
+        if compare_lists([card["layout"]], excluded_layouts):
+            return False
+
+    if card['layout'] in excluded_layouts:
+        sys.exit(f"Card {card['name']} with layout {card['layout']} made it through layout filter!")
 
     #Exclude cards that are legal in exclude_legal
-    if filter_data.legal_include is not None:
-        for legalities in filter_data.legal_include:
+    if filter_data.filter.legal.exclude.inclusive:
+        for legalities in filter_data.filter.legal.exclude.inclusive:
             if card['legalities'][legalities] == "not_legal":
                 #print(f"card {card['name']} legality not included")
                 return False
 
-    if filter_data.type_exclude is not None:
+    if filter_data.filter.types.exclude.inclusive:
         # Include cards of the required type
         if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
-            if any(cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in
-                       filter_data.type_exclude):
-                #print(f"card {card['name']} type excluded")
+            if not compare_lists(card['card_faces'][0]['type_line'].lower().split(' '), filter_data.filter.types.exclude.inclusive):
                 return False
+
         elif 'type_line' in card:
-            if any(cardtype in card['type_line'].lower().split(' ') for cardtype in filter_data.type_exclude):
-                #print(f"card {card['name']} type excluded")
+            if not compare_lists(card['type_line'].lower().split(' '), filter_data.filter.types.include):
                 return False
 
     return True
 
-def match_inclusions(card, filter_data):
-    if filter_data.legal_include is not None:
-        for legalities in filter_data.legal_include:
+def match_inclusions(card, filter_data : GameMode.GameMode):
+    if filter_data.filter.legal.include.inclusive:
+        for legalities in filter_data.filter.legal.include.inclusive:
             if card['legalities'][legalities] == "not_legal":
                 #print(f"card {card['name']} legality not included")
                 return False
 
     #Include cards of the required type
-    if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
-        if not any(cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in filter_data.type_include):
-            #print(f"card {card['name']} type not included")
-            return False
-    elif 'type_line' in card:
-        if not any(cardtype in card['type_line'].lower().split(' ') for cardtype in filter_data.type_include):
-            #print(f"card {card['name']} type not included")
-            return False
+    if filter_data.filter.types.include.inclusive:
+        if 'card_faces' in card and 'type_line' in card['card_faces'][0]:
+            if not compare_lists(card['card_faces'][0]['type_line'].lower().split(' '), filter_data.filter.types.include.inclusive):
+                return False
+
+        elif 'type_line' in card:
+            if not compare_lists(card['type_line'].lower().split(' '), filter_data.filter.types.include.inclusive):
+                return False
 
     return True
+
+def compare_lists(a, b, exact = False):
+    if exact:
+        if not list(set(a).difference(b)):
+            #print(f"card {a} and card {b} have no differences")
+            return True
+
+    else:
+        if list(set(a).intersection(b)):
+            #print(f"card {a} and card {b} share at least one item")
+            return True
+
+    return False
 
 def get_card_by_id(id):
     with open(bulk_data_name, 'r', encoding='utf-8') as file:
@@ -76,10 +90,10 @@ def get_card_by_id(id):
     ][0]
 
 def get_filtered_cards(data_filter:Filter):
-    starttime = time.time()
+    start_time = time.time()
     with open(bulk_data_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    print(f"Loading card data took {round(time.time() - starttime, 2)} seconds")
+    print(f"Loading card data took {round(time.time() - start_time, 2)} seconds")
 
     return [
         card for card in data if match_exclusions(card, data_filter) and #Exclude cards based on layout and set type
@@ -92,8 +106,12 @@ def get_card_id(card):
 
 def get_art_url_for_card(card, face = Face.FRONT):
     if 'card_faces' in card and card['layout'] not in pseudo_double_faced_layouts:
+        if not 'image_uris' in card['card_faces'][face.value]:
+            return None
         return card['card_faces'][face.value]['image_uris']['art_crop']
     else:
+        if not 'image_uris' in card:
+            return None
         return card['image_uris']['art_crop']
 
 def get_name_for_card(card, face = Face.FRONT):
@@ -108,8 +126,11 @@ def get_cmc_for_card(card, face = Face.FRONT):
     else:
         return card['mana_cost']
 
-def get_image_for_card(card):
-    return Image.open(f"{image_path}{card['id']}.{image_type}")
+def get_image_for_card(card, face = Face.FRONT):
+    if face == Face.FRONT:
+        return Image.open(f"{image_path}{card['id']}.{image_type}")
+    else:
+        return Image.open(f"{image_path}Backs/{card['id']}.{image_type}")
 
 def get_title_line_for_card(card, face = Face.FRONT):
     return format_for_single_line(get_name_for_card(card, face), get_cmc_for_card(card, face))
@@ -170,3 +191,9 @@ def is_card_true_double_face(card):
         return True
     else:
         return False
+
+if __name__ == "__main__":
+    test_filter = Filter("Test")
+    test_filter.add_scryfall_id("97fde010-c75b-4e5f-82e2-6dc1c5dfe1a4")
+    test_cards = get_filtered_cards(test_filter)
+    print(test_cards)
