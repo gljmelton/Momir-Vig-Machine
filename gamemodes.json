@@ -1,0 +1,150 @@
+[
+  {
+    "name": "Basic",
+    "description": "Momir Basic in it's original form. Vintage ban list.",
+    "rules": "",
+    "filter": {
+      "legal" : {
+        "include" : {
+         "inclusive" : ["vintage"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "types" : {
+        "include" : {
+          "inclusive" : ["creature"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "colors" : {
+        "include" : {
+          "inclusive" : [],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      }
+    }
+  },
+  {
+    "name": "Standard",
+    "description": "Momir Basic with a Standard ban list.",
+    "rules": "",
+    "filter": {
+      "legal" : {
+        "include" : {
+         "inclusive" : ["standard"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "types" : {
+        "include" : {
+          "inclusive" : ["creature"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "colors" : {
+        "include" : {
+          "inclusive" : [],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      }
+    }
+  },
+  {
+    "name" : "Kaalia",
+    "description": "Only angels, demons, and dragons",
+    "rules": "",
+    "filter": {
+      "legal" : {
+        "include" : {
+         "inclusive" : ["vintage"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "types" : {
+        "include" : {
+          "inclusive" : ["angel", "demon", "dragon"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "colors" : {
+        "include" : {
+          "inclusive" : [],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      }
+    }
+  },
+  {
+    "name" : "Equipped",
+    "description": "Creatures, Equipment, and Auras",
+    "rules": "Equipment can be attached when it enters if played by Momir Vig's ability. \n Momir Vig's ability can be used multiple times per turn.",
+    "filter": {
+      "legal" : {
+        "include" : {
+         "inclusive" : ["vintage"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "types" : {
+        "include" : {
+          "inclusive" : ["creature", "equipment", "aura"],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      },
+      "colors" : {
+        "include" : {
+          "inclusive" : [],
+          "exclusive" : []
+        },
+        "exclude": {
+          "inclusive" : [],
+          "exclusive" : []
+        }
+      }
+    }
+  }
+]

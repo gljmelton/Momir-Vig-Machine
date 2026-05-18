@@ -1,6 +1,6 @@
 *.png
 /env
 /__pycache__
-*.json
+oracle-cards.json
 /venv
 /.idea
