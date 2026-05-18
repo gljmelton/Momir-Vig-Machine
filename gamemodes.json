@@ -113,7 +113,7 @@
   {
     "name" : "Equipped",
     "description": "Creatures, Equipment, and Auras",
-    "rules": "Equipment can be attached when it enters if played by Momir Vig's ability. \n Momir Vig's ability can be used multiple times per turn.",
+    "rules": "Equipment can be attached without paying its equip costs if it was put onto the battlefield with Momir Vig's ability.\nMomir Vig's ability can be used multiple times per turn.",
     "filter": {
       "legal" : {
         "include" : {
