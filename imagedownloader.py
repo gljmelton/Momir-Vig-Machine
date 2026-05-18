@@ -60,9 +60,12 @@ def does_image_exist(card, face = Face.FRONT):
 def does_card_have_back_image(card):
     return scryfall.is_card_true_double_face(card)
 
-filter = GameMode.Filter("Downloads")
-print(filter.type_include)
-card_data = scryfall.get_filtered_cards(filter)
+game_mode = GameMode.GameMode("Downloads", "", "",
+                              GameMode.Filter(
+                                  GameMode.FilterSet(include=GameMode.FilterSetIncExcl([], []), exclude=GameMode.FilterSetIncExcl([], [])),
+                                  GameMode.FilterSet(include=GameMode.FilterSetIncExcl([], []), exclude=GameMode.FilterSetIncExcl([], [])),
+                                  GameMode.FilterSet(include=GameMode.FilterSetIncExcl([], []), exclude=GameMode.FilterSetIncExcl([], [])))
+card_data = scryfall.get_filtered_cards(game_mode)
 
 deleteall = input("Delete all images? (y,N): ")
 downloadmissingimages = input("Download missing images? (Y,n): ")

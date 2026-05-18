@@ -89,7 +89,7 @@ def get_card_by_id(id):
         card for card in data if card['id'] == id                                          #Exclude cards based on type line of the front face
     ][0]
 
-def get_filtered_cards(data_filter:Filter):
+def get_filtered_cards(data_filter: GameMode.GameMode):
     start_time = time.time()
     with open(bulk_data_name, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -191,9 +191,3 @@ def is_card_true_double_face(card):
         return True
     else:
         return False
-
-if __name__ == "__main__":
-    test_filter = Filter("Test")
-    test_filter.add_scryfall_id("97fde010-c75b-4e5f-82e2-6dc1c5dfe1a4")
-    test_cards = get_filtered_cards(test_filter)
-    print(test_cards)
