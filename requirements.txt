@@ -10,4 +10,5 @@ thermalprinter
 numpy
 argparse
 keyboard; sys_platform=='Windows'
+msgspec
 ttkthemes
