@@ -4,17 +4,24 @@ import time
 import struct
 
 class Printer:
+    feed_callback = None
+    image_callback = None
+    out_callback = None
+
     def __init__(self):
         pass
 
     def feed(self, lines=1):
-        pass
+        if self.feed_callback:
+            self.feed_callback(lines)
 
     def image(self, img):
-        pass
+        if self.image_callback:
+            self.image_callback(img)
 
-    def out(self, text):
-        pass
+    def out(self, text, **kwargs):
+        if self.out_callback:
+            self.out_callback(text)
 
 class ThermPrinter(Printer):
     def __init__(self):

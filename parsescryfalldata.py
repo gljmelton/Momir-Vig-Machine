@@ -1,22 +1,23 @@
 #This standalone script is used to parse the oracle-cards.json file and download the card images. It filters out cards based on their set type and layout, as specified in the config.ini file. The images are saved in the 'Images' directory with the card ID as the filename.
-import json
 import os
 import requests
 import configparser
 import glob
 from io import BytesIO
-from PIL import Image, ImageStat, ImageEnhance
+from pathlib import Path
+from PIL import Image, ImageStat, ImageOps
 import numpy
 import scryfall
+from scryfall import Face, Card
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-requiretypes = config.get('GENERAL', 'require_types').split(', ')
+bulk_data_name = config.get('GENERAL', 'bulk_data_name')
 pseudodoublefacedlayouts = config.get('GENERAL', 'pseudo_double_faced_layouts').split(', ')
 imagepath = config.get('GENERAL', 'image_path')
 imagetype = config.get('GENERAL', 'image_type')
-verbose = config.getboolean('GENERAL', 'verboselogging')
+verbose = config.getboolean('GENERAL', 'verbose_logging')
 download = True
 
 darkthreshold = 0
@@ -26,128 +27,144 @@ def printverbose(string):
     if verbose:
         print(string)
 
-def getimagebrightness(img):
+def get_image_brightness(img):
     return ImageStat.Stat(img).mean[0]
 
-def getimagethreshold(img):
-    brightness = getimagebrightness(img)
+def get_image_threshold(img):
+    brightness = get_image_brightness(img)
     return numpy.interp(brightness, [0,255], [darkthreshold, lightthreshold])
 
-def requestandsaveimage(url, filename):
-    request = requests.get(url, stream=True)
+def request_and_save_image(url, filename, face = Face.FRONT):
+    if not url:
+        return
+
+    headers = {
+        "User-Agent": "ProxyBuilder",
+        "Accept": "*/*"
+    }
+    request = requests.get(url, stream=True, headers=headers)
     img = Image.open(BytesIO(request.content))
     img = img.convert("L")
-    if getimagebrightness(img) < 60:
-        enhancer = ImageEnhance.Brightness(img)
-        print("Enhancing brightness")
-        img = enhancer.enhance(1.5)
-
+    img = ImageOps.autocontrast(img)
     img = img.resize((384, 280), 0)
-    img = img.point( lambda p: 255 if p > (getimagethreshold(img)*255) else 0 )
+    img = img.point(lambda p: 255 if p > (get_image_threshold(img) * 255) else 0)
     img = img.convert("1")
-    img.save(f'{imagepath}{filename}.{imagetype}')
 
-def doesimageexist(card):
-    return os.path.exists(f'{imagepath}{scryfall.get_card_id(card)}.{imagetype}')
+    if face == Face.FRONT:
+        img.save(f'{imagepath}{filename}.{imagetype}')
 
-filtereddata = scryfall.get_filtered_cards()
+    else:
+        img.save(f'{imagepath}Backs/{filename}.{imagetype}')
 
-deleteall = input("Delete all images? (y,N): ")
-downloadmissingimages = input("Download missing images? (Y,n): ")
-deleteorphanedimages = input("Delete orphaned images for cards not in database? (Y,n): ")
+def does_image_exist(c : Card, face = Face.FRONT):
+    if face == Face.FRONT:
+        path = Path(f'{imagepath}{c.id}.{imagetype}')
+        #print(f"Image for {c.name} exists = {path.exists()}")
+        return path.exists()
+    else:
+        path = Path(f'{imagepath}Backs/{c.id}.{imagetype}')
+        #print(f"Image for {c.name} back exists = {path.exists()}")
+        return path.exists()
 
-if deleteall.lower() == "y":
+def does_card_have_back_image(c):
+    return scryfall.is_card_true_double_face(c)
+
+card_data : list[Card] = scryfall.get_all_cards()
+
+delete_all = input("Delete all images? (y,N): ")
+download_missing_images = input("Download missing images? (Y,n): ")
+delete_orphaned_images = input("Delete orphaned images for cards not in database? (Y,n): ")
+
+if delete_all.lower() == "y":
     #Clear out existing images in the image path
     print("Deleting all images...")
-    files = glob.glob(f'{imagepath}*')
+    files = glob.glob(f'{imagepath}**/*png', recursive=True)
     for f in files:
         os.remove(f)
     
     print("Delete all images complete!")
 
 # Download card images from filtered data, convert to monochrome, and save
-totalcards = len(filtereddata)
-print(f'Found {totalcards} cards after filtering.')
+total_cards = len(card_data)
+print(f'Found {total_cards} cards after filtering.')
 
-if downloadmissingimages.lower() == "y" or downloadmissingimages.lower() == "":
-    for i in range(len(filtereddata)):
-        progress = (i+1) / totalcards * 100
-        printverbose(f'Downloading images for {filtereddata[i]["name"]} ({i+1}/{totalcards}) {progress:.2f}%...')
+if download_missing_images.lower() == "y" or download_missing_images.lower() == "":
+    for i in range(len(card_data)):
+        progress = (i+1) / total_cards * 100
+        printverbose(f'Downloading images for {card_data[i].name} ({i+1}/{total_cards}) {progress:.2f}%...')
     
-        card = filtereddata[i]
+        card = card_data[i]
+        front_image_exists = does_image_exist(card_data[i])
+        if not front_image_exists:
+            request_and_save_image(scryfall.get_art_url_for_card(card), scryfall.get_card_id(card))
+            print(f'({i + 1}/{total_cards}|{progress:.2f}%) Downloaded {card_data[i].name}')
+        else:
+            print(f'({i + 1}/{total_cards}|{progress:.2f}%) Already have {card_data[i].name}')
 
-        if doesimageexist(filtereddata[i]):
-            printverbose(f'Image already exists for {filtereddata[i]["name"]}, skipping download.')
-            continue
+        if scryfall.is_card_true_double_face(card):
+            if not does_image_exist(card_data[i], Face.BACK):
+                request_and_save_image(scryfall.get_art_url_for_card(card, Face.BACK), scryfall.get_card_id(card), Face.BACK)
+                print(f'({i + 1}/{total_cards}|{progress:.2f}%) Downloaded {card_data[i].name} back')
+            else:
+                print(f'({i + 1}/{total_cards}|{progress:.2f}%) Already have {card_data[i].name} back')
 
-        requestandsaveimage(scryfall.get_art_url_for_card(card), scryfall.get_card_id(card))
-            
-        print(f'({i+1}/{totalcards}|{progress:.2f}%) Downloaded {filtereddata[i]["name"]}')
+
+
+print("")
 
 #Soft delete after downloading
-if deleteorphanedimages.lower() == "y" or deleteorphanedimages.lower() == "":
+if delete_orphaned_images.lower() == "y" or delete_orphaned_images.lower() == "":
     #Soft delete images that no longer have a corresponding card in the filtered data
     print("Deleting images for cards not in filtered data...")
-    existingimages = glob.glob(f'{imagepath}*')
-    for i in range(len(existingimages)):
-        print(f'\r{i+1}/{len(existingimages)} images processed...', end='')
-        imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
-        if not any((card["id"] == imageid) for card in filtereddata):
+    existing_images = glob.glob(f'{imagepath}**/*.png', recursive=True)
+    for i in range(len(existing_images)):
+        print(f'\r{i+1}/{len(existing_images)} images processed...', end='')
+        imageid = os.path.splitext(os.path.basename(existing_images[i]))[0]
+        if not any((card.id == imageid) for card in card_data):
             print("")
-            print(f'Deleting {existingimages[i]}...')
-            os.remove(existingimages[i])
+            print(f'Deleting {existing_images[i]}...')
+            os.remove(existing_images[i])
     
     print("")
 
 ####VALIDATION
-print(f'Total cards: {len(filtereddata)} | Total images: {len(os.listdir(imagepath))}')
+print(f'Total cards: {len(card_data)} | Total images: {len(os.listdir(imagepath))}')
 print('Validating that all images exist...')
-for i in range(len(filtereddata)):
-    if not "id" in filtereddata[i]:
-        print(f'Card {filtereddata[i]["name"]} is missing an ID, skipping validation for this card.')
+for i in range(len(card_data)):
+    if card_data[i].id:
+        print(f'Card {card_data[i].name} is missing an ID, skipping validation for this card.')
         continue
 
-    card = filtereddata[i]
+    card = card_data[i]
 
     if not os.path.exists(f'{imagepath}{scryfall.get_card_id(card)}.{imagetype}'):
-            print(f'Missing image for {card["name"]}!')
+            print(f'Missing image for {card.name}!')
     
-    printverbose(f'Validated image {i+1} of {totalcards} for {filtereddata[i]["name"]}!')
+    printverbose(f'Validated image {i+1} of {total_cards} for {card_data[i].name}!')
 
 print('Images exist for all cards!')
 
 print('Validating that all images are in card data...')
-existingimages = glob.glob(f'{imagepath}*')
-for i in range(len(existingimages)):
-    imageid = os.path.splitext(os.path.basename(existingimages[i]))[0]
-    if not any((('card_faces' in card) or ('card_faces' in card and card["id"] == imageid) or (card["id"] == imageid)) for card in filtereddata):
-        print(f'Image {existingimages[i]} does not have a corresponding card in data!')
+existing_images = glob.glob(f'{imagepath}*')
+for i in range(len(existing_images)):
+    imageid = os.path.splitext(os.path.basename(existing_images[i]))[0]
+    if not any(((card.card_faces is None) or (card.card_faces is None and card.id == imageid) or (card.id == imageid)) for card in card_data):
+        print(f'Image {existing_images[i]} does not have a corresponding card in data!')
     
-    printverbose(f'Validated image {i+1} of {len(existingimages)} for {existingimages[i]}!')
+    printverbose(f'Validated image {i+1} of {len(existing_images)} for {existing_images[i]}!')
 
 print('Validating duplicate ids...')
 
-idlist = {}
-for i in range(len(filtereddata)):
-    if not scryfall.get_card_id(filtereddata[i]) in idlist:
-        idlist[str(scryfall.get_card_id(filtereddata[i]))] = 1
+id_list = {}
+for i in range(len(card_data)):
+    if not scryfall.get_card_id(card_data[i]) in id_list:
+        id_list[str(scryfall.get_card_id(card_data[i]))] = 1
     else:
-        print(f'Duplicate id {scryfall.get_card_id(filtereddata[i])} found for {filtereddata[i]["name"]}!')
-        idlist[str(scryfall.get_card_id(filtereddata[i]))] += 1
+        print(f'Duplicate id {scryfall.get_card_id(card_data[i])} found for {card_data[i].name}!')
+        id_list[str(scryfall.get_card_id(card_data[i]))] += 1
 
-for i in range(len(idlist)):
-    if list(idlist.values())[i] > 1:
-        print(f'Duplicate id {list(idlist.keys())[i]} found for {idlist[list(idlist.keys())[i]]} cards!')
+for i in range(len(id_list)):
+    if list(id_list.values())[i] > 1:
+        print(f'Duplicate id {list(id_list.keys())[i]} found for {id_list[list(id_list.keys())[i]]} cards!')
 
 print('Duplicate validation complete!')
-print('Validating card types...')
-for i in range(len(filtereddata)):
-    card = filtereddata[i]
-    if 'type_line' in card:
-        if not any (cardtype in card['type_line'].lower().split(' ') for cardtype in requiretypes):
-            print(f'Card {card["name"]} does not match required types!')
-    elif 'card_faces' in card and 'type_line' in card['card_faces'][0]:
-        if not any (cardtype in card['card_faces'][0]['type_line'].lower().split(' ') for cardtype in requiretypes):
-            print(f'Card {card["name"]} does not match required types!')
-
-print('Card type validation complete!')

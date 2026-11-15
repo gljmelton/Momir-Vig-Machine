@@ -1,14 +1,19 @@
 from LCD import LCD
 
 class Display:
+    update_display_callback = None
+    clear_callback = None
+
     def __init__(self):
         pass
 
     def update_display(self, text, line=1):
-        pass
+        if self.update_display_callback:
+            self.update_display_callback(text, line)
 
     def clear(self):
-        pass
+        if self.clear_callback:
+            self.clear_callback()
 
 class LCDDisplay(Display):
     def __init__(self):

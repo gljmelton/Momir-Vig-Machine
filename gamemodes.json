@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Basic",
+    "description": "Momir Basic in it's original form. Vintage ban list.",
+    "rules": "",
+    "filter": {
+      "legal" : ["vintage"],
+      "types" : ["creature"],
+      "colors" : []
+    }
+  },
+  {
+    "name": "Standard",
+    "description": "Momir Basic with a Standard ban list.",
+    "rules": "",
+    "filter": {
+      "legal" : ["standard"],
+      "types" : ["creature"],
+      "colors" : []
+    }
+  },
+  {
+    "name" : "Kaalia",
+    "description": "Only angels, demons, and dragons",
+    "rules": "",
+    "filter": {
+      "legal" : ["vintage"],
+      "types" : ["angel", "demon", "dragon"],
+      "colors" : []
+    }
+  },
+  {
+    "name" : "Equipped",
+    "description": "Creatures, Equipment, and Auras",
+    "rules": "Equipment can be attached without paying its equip costs if it was put onto the battlefield with Momir Vig's ability.\nMomir Vig's ability can be used multiple times per turn.",
+    "filter": {
+      "legal" : ["vintage"],
+      "types" : ["creature", "equipment", "aura"],
+      "colors" : []
+    }
+  },
+  {
+    "name" : "Expanded",
+    "description": "Creatures, Planeswalkers, Vehicles, and Spacecraft",
+    "rules": "",
+    "filter": {
+      "legal" : ["vintage"],
+      "types" : ["creature", "vehicle", "spacecraft", "planeswalker"],
+      "colors" : []
+    }
+  },
+  {
+    "name" : "Universes Beyond",
+    "description": "Creatures, Planeswalkers, Vehicles, and Spacecraft",
+    "rules": "",
+    "filter": {
+      "legal" : [],
+      "types" : ["creature", "vehicle", "spacecraft", "planeswalker"],
+      "colors" : [],
+      "set" : ["mdd", "mdc", "trk", "trc,", "hob", "hoc", "msh", "msc", "tmt", "tmc", "tla", "tle", "smp", "spe", "fin", "fic", "acr", "pip", "rex", "who", "ltr", "ltc", "40k"]
+    }
+  }
+]

@@ -12,6 +12,8 @@ else:
     keyboard = None
 
 class Input:
+    #Callbacks should only be invoked by the _pressed functions below.
+    #Only subscribe to these if you want to trigger additional behavior when buttons are pressed.
     up_pressed_callback = None
     down_pressed_callback = None
     enter_pressed_callback = None
