@@ -186,7 +186,7 @@ def get_title_line_for_card(card : Card, face = Face.FRONT):
     return format_for_single_line(get_name_for_card(card, face), get_cmc_for_card(card, face))
 
 def get_set_and_stat_line_for_card(card : Card, face = Face.FRONT):
-    return format_for_single_line(get_set_code_for_card(card), get_stat_line_for_card(card, face))
+    return format_for_single_line(get_set_code_for_card(card).upper(), get_stat_line_for_card(card, face))
 
 def format_for_single_line(first, second):
     line_len = 32

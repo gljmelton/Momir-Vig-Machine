@@ -12,6 +12,9 @@ def print_card(printer, card):
     
     printer.feed(2)
 
+def print_rules(printer, rules):
+    printer.out(textwrap.fill(rules, 32))
+
 def print_card_face(printer, card, face):
     printer.feed()
     if face is Face.BACK:
